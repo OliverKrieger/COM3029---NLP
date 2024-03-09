@@ -1,2 +1,9 @@
 /lab03/txt_sentoken
 /lab03/poldata.README.2.0
+
+/lab04/.vector_cache
+/lab04/assets
+/lab04/datasets
+
+/lab05/datasets
+/lab05/*.pt
