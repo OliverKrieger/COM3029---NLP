@@ -7,3 +7,5 @@
 
 /lab05/datasets
 /lab05/*.pt
+
+/cw/distilBERT/distilBERT-finetuned-NER/*
