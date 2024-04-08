@@ -9,3 +9,4 @@
 /lab05/*.pt
 
 /cw/distilBERT/distilBERT-finetuned-NER/*
+/cw/distilBERT/distilbert_model/*
