@@ -10,3 +10,6 @@
 
 /cw/distilBERT/distilBERT-finetuned-NER/*
 /cw/distilBERT/distilbert_model/*
+
+/cw/spacy/output/*
+/cw/spacy/spacy_vocab/*
