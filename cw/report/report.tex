@@ -1,0 +1,178 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{multicol}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{
+    \huge COM3029 - Natural Language Processing \\
+    \Large Coursework 1 \\
+    Group 6}
+\author{
+    Oliver Krieger \\
+    URN:6664919
+}
+\date{April 2024}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+\subsection{Group 6 Members}
+
+\begin{multicols}{2}
+\normalsize \begin{enumerate}
+  \item Eleanor Lurgio
+  \item Oliver Krieger
+  \item Seo(Seoeun) Lee
+  \item Thiri(Alice) Thu
+\end{enumerate}
+\end{multicols}
+
+\subsection{Individual Tasks}
+
+\begin{tabular}{ |p{4cm}||p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}| }
+    \hline
+    \multicolumn{5}{|c|}{Individual Tasks} \\
+    \hline
+    Tasks & Eleanor & Oliver & Seoeun & Alice \\
+    \hline
+    Data Pre-processing &  & \cellcolor{green!25}\checkmark & \cellcolor{green!25}\checkmark &  \\
+    \hline
+    NLP Algorithms &  &  & \cellcolor{green!25}\checkmark & \cellcolor{green!25}\checkmark \\
+    \hline
+    Text Encoding / Transformation &  & \cellcolor{green!25}\checkmark & \cellcolor{green!25}\checkmark &  \\
+    \hline
+    Dataset Splitting & \cellcolor{green!25}\checkmark &  &  & \cellcolor{green!25}\checkmark \\
+    \hline
+    Loss Functions and Optimisers & \cellcolor{green!25}\checkmark &  &  & \cellcolor{green!25}\checkmark \\
+    \hline
+    Hyper Parameters & \cellcolor{green!25}\checkmark & \cellcolor{green!25}\checkmark & \cellcolor{green!25}\checkmark &  \\
+    \hline
+    Pre-trained models & \cellcolor{green!25}\checkmark & \cellcolor{green!25}\checkmark &  & \cellcolor{green!25}\checkmark \\
+    \hline
+\end{tabular} \\ \\
+
+{\noindent \large \bf My tasks include:}
+\begin{enumerate}
+  \item Data Pre-processing
+  \item Text Encoding / Trans-formation
+  \item Hyper Parameters (Fine Tuning)
+  \item Pre-trained models (DistilBERT and SpaCy)
+\end{enumerate}
+
+\section{Data Analysis}
+
+\subsection{Loading The Dataset}
+
+For this coursework, we are exploring the PLOD Dataset which is an English-language dataset of abbreviations and their long-forms tagged in text. The data is gathered from research for PLOS journals. The dataset is loaded using the datasets module. This is done within jupyter notebook environment.
+
+\begin{lstlisting}[language=Python, caption=Load Dataset]
+# Import dataset import function for hugging face
+from datasets import load_dataset, DatasetDict, Dataset
+
+# import the coursework dataset from
+dataset_dict:DatasetDict = load_dataset("surrey-nlp/PLOD-CW") 
+\end{lstlisting}
+ 
+This creates a dataset dictionary with 3 datasets - train, validation and test. Each dictionary item has dataset definitions of "tokens", "pos tags" and "ner tags". These are represented as lists of lists of strings (list[list[str]]), the sublists being a representation of rows.
+
+\begin{lstlisting}[language=Python, caption=Dataset Features]
+DatasetDict({
+    train: Dataset({
+        features: ['tokens', 'pos_tags', 'ner_tags'],
+        num_rows: 1072
+    })
+    validation: Dataset({
+        features: ['tokens', 'pos_tags', 'ner_tags'],
+        num_rows: 126
+    })
+    test: Dataset({
+        features: ['tokens', 'pos_tags', 'ner_tags'],
+        num_rows: 153
+    })
+})
+\end{lstlisting}
+
+Each of these datasets can be accessed as normal python dictionaries by calling the dataset name followed by the features name. For instance:
+\begin{verbatim}
+    dataset["train"]["tokens"]
+\end{verbatim}
+
+Would return the list of tokens from the train dataset. As the arrays can become slow to iterate it was sensible to load them into data collections where that contain data items. The collections allow for easy access to lists and reusable functionality.
+
+
+
+\section{Experiments}
+
+\subsection{Experiment 1}
+\subsubsection{Method}
+Experimentation with four different experimental setups, where you might be trying out
+different options such as (listing more than four different experiments here, so choose four).
+Your PDF report should have a subheading for each of the 4 experiments, numbered 2.1, 2.2,
+2.3, and 2.4.
+\subsubsection{Analysis}
+Analyse testing for each of the four experiment variations conducted above (this refers to
+accuracy testing, not software testing) – show visuals, such as confusion matrix or other
+relevant metrics for each experiment. Use F1-score as primary evaluation metric. Perform an
+error analysis on the predictions obtained. Your PDF report should have a subheading for
+each of the 4 experiment variations, numbered 3.1, 3.2, 3.3, and 3.4. (20 marks, 5 marks per
+variation)
+
+\subsection{Experiment 2}
+\subsection{Experiment 3}
+\subsection{Experiment 4}
+
+\section{Conclusion}
+\subsection{Experiment Result}
+Discuss best and worst results from the testing, on all the experiments you conducted and
+mention if there was any need to adjust any variables and re-run the experiment (8 marks, 2
+mark per variation)
+
+\subsection{Outcome}
+Evaluate the overall attempt and outcome – this goes beyond the accuracy of the models, so
+some important questions to consider here are:
+a. “Can the models you built fulfil their purpose?”
+b. “What is good enough F1/accuracy?”
+c. If any of the models did not perform well, what is needed to improve?
+d. If any of the models performed really well, could/would you make it more efficient
+and sacrifice some quality?
+
+
+\end{document}
