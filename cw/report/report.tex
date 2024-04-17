@@ -5,6 +5,8 @@
 \usepackage[table]{xcolor}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{ {./imgs/} }
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -67,7 +69,7 @@
 
 \subsection{Individual Tasks}
 
-\begin{tabular}{ |p{4cm}||p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}| }
+\begin{tabular}{ |p{5.1cm}||p{1.2cm}|p{1.1cm}|p{1.2cm}|p{1.1cm}| }
     \hline
     \multicolumn{5}{|c|}{Individual Tasks} \\
     \hline
@@ -92,7 +94,7 @@
 {\noindent \large \bf My tasks include:}
 \begin{enumerate}
   \item Data Pre-processing
-  \item Text Encoding / Trans-formation
+  \item Text Encoding / Transformation
   \item Hyper Parameters (Fine Tuning)
   \item Pre-trained models (DistilBERT and SpaCy)
 \end{enumerate}
@@ -137,7 +139,85 @@ Each of these datasets can be accessed as normal python dictionaries by calling 
 
 Would return the list of tokens from the train dataset. As the arrays can become slow to iterate it was sensible to load them into data collections where that contain data items. The collections allow for easy access to lists and reusable functionality.
 
+\subsection{Data Samples}
 
+After loading the dataset, we can test to see how many samples we have to train on, as well as what our split between labels are. To begin observing this, we will want to write some helper functions to make it easier to read the data. First we will write a "flatten list" function that will help us take a list of lists and make it into a singular list:
+\begin{lstlisting}[language=Python, caption=Flatten List Function]
+def flatten_list(given_list:list[list[any]]) -> list[any]:
+    return [element for inner_list in given_list for element in inner_list]
+\end{lstlisting}
+
+This way we can combine all our rows into one single list and perform calculations on it. Since every token has to have a pos and ner tag to it, we can assume that all lists are of the same size at the end. To more easily access our data and to speed up our queries, we will create our own DataRow and DataCollection items, as to more easily manipulate the data.
+
+\begin{lstlisting}[language=Python, caption=Data Row and Data Collection]
+class DataRow:
+    def __init__(self, tokens, pos, ner, row_idx=0):
+        self.idx:int = row_idx
+        self.tokens:list[str] = tokens
+        self.pos:list[str] = pos
+        self.ner:list = ner
+
+class DataCollection:
+    def __init__(self, list_collection:list[DataRow], max_token_length=512):
+        self.max_token_length:int = max_token_length # max token length (if we tokenize inputs)
+        self.collection:list[DataRow] = list_collection # list of rows in the collection
+
+    # get a list of token rows
+    def get_token_list(self) -> list[list[str]]:
+        return [data_item.tokens for data_item in self.collection]
+
+    # get a list of pos rows
+    def get_pos_list(self) -> list[list[str]]:
+        return [data_item.pos for data_item in self.collection]
+
+    # get a list of ner rows
+    def get_ner_list(self) -> list[list[str]]:
+        return [data_item.ner for data_item in self.collection]
+\end{lstlisting}
+
+By getting each of the lists, we discover that the train dataset has 40,000 tokens, and validation and test sets both have 5000 tokens each. This leads us to 50000 total samples, from which 40000 we use to train on and another 5000 to test while training.
+
+\includegraphics[scale=0.8]{token_count}
+
+As we will be training on the train dataset, we will want to know how many of the 40000 tokens are actually unique. To do this, we will build a function to make a dictionary of unique tokens, as well as to get the frequency of each token.
+
+\begin{lstlisting}[language=Python, caption=Getting Token Frequency]
+def get_word_frequency(data_list:list[str]) -> dict:
+    word_frequency:dict = {"total_tokens":0, "unique_tokens":0, "unique_token_frequency":{}}
+    for value in data_list:
+        if value not in word_frequency["unique_token_frequency"].keys():
+            word_frequency["unique_token_frequency"][value] = 1
+            word_frequency["unique_tokens"] += 1
+        else:
+            word_frequency["unique_token_frequency"][value] += 1
+        word_frequency["total_tokens"] += 1
+    return word_frequency
+\end{lstlisting}
+
+By looking at the unique tokens in the train set, we find that out of the 40000 samples, we actually only have 9133 unique tokens. This number is actually smaller as we will discuss in the pre-processing step, but for now these will be our unique tokens. From the frequency we can also get which are the most common tokens.
+
+\begin{lstlisting}[language=Python, caption=Getting Token Frequency]
+train_frequency:dict = get_word_frequency(flatten_list(train_collection.get_token_list()))
+sorted_list = sorted(train_frequency["unique_token_frequency"].items(), key=lambda t: t[1], reverse=True)
+sorted_list = sorted_list[:10]
+sorted_dict = {item_tuple[0]:item_tuple[1] for item_tuple in sorted_list}
+plt.bar(sorted_dict.keys(), sorted_dict.values(), color=colors)
+plt.show() # frequency of classes / labels
+\end{lstlisting}
+
+\includegraphics[scale=0.8]{top_10_most_frequent}
+
+From plotting the top 10 most frequent tokens, we can clearly see that the most common tokens are stopwords. In order to both balance our classes and focus learning only on abbreviations and long forms, we might benefit from removing them, though we also want to learn what are words that should be labelled as neither, so we will experiment with both.
+
+Next we will want to test how many labels we have available. To do this, we can get use the word frequency function we have already written. This will show us a distribution on the training set of 'B-O': 32971, 'B-LF': 1462, 'I-LF': 3231, 'B-AC': 2336. In a plot it would look as following:
+
+\includegraphics[scale=0.8]{class_distribution}
+
+We can see that we have 4 classes, B-O standing for not an abbreviation or long form, B-AC being an abbreviation, B-LF is long form beginning and I-LF is the continuation of the long form. All long forms will be represented as starting with B-LF followed by I-LF if any. This creates a sequence.
+
+From the plot, we can see that the dataset is imbalanced towards the B-O class. Data imbalance is usually resolved by either oversampling or undersampling the dataset. In the case of oversampling, we would add more values, either from the test or validation set (while removing them from their corresponding set) and adding them to the training set to increase the values of the B-LF, I-LF and B-AC classes. For undersampling we would remove values of B-O. This would be most easily done by removing stop words and their corresponding POS and NER tag values.
+
+\newpage
 
 \section{Experiments}
 
