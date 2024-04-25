@@ -36,7 +36,7 @@
 
 \title{
     \huge COM3029 - Natural Language Processing \\
-    \Large Coursework 1 \\
+    \Large Individual Coursework \\
     Group 6}
 \author{
     Oliver Krieger \\
@@ -103,7 +103,7 @@
 
 \subsection{Loading The Dataset}
 
-For this coursework, we are exploring the PLOD Dataset which is an English-language dataset of abbreviations and their long-forms tagged in text. The data is gathered from research for PLOS journals. The dataset is loaded using the datasets module. This is done within jupyter notebook environment.
+For this coursework, we are exploring the PLOD Dataset which is an English-language dataset of abbreviations and their long-forms tagged in text. The data is gathered from research for PLOS journals. The dataset is loaded using the hugging face datasets module. This is done within jupyter notebook environment.
 
 \begin{lstlisting}[language=Python, caption=Load Dataset]
 # Import dataset import function for hugging face
@@ -137,7 +137,7 @@ Each of these datasets can be accessed as normal python dictionaries by calling 
     dataset["train"]["tokens"]
 \end{verbatim}
 
-Would return the list of tokens from the train dataset. As the arrays can become slow to iterate it was sensible to load them into data collections where that contain data items. The collections allow for easy access to lists and reusable functionality.
+Would return the list of tokens from the train dataset. As the arrays can become slow to iterate, it was sensible to load them into data collections where that contain data items. The collections allow for easy access to lists and reusable functionality.
 
 \subsection{Data Samples}
 
@@ -207,7 +207,7 @@ plt.show() # frequency of classes / labels
 
 \includegraphics[scale=0.8]{top_10_most_frequent}
 
-From plotting the top 10 most frequent tokens, we can clearly see that the most common tokens are stopwords. In order to both balance our classes and focus learning only on abbreviations and long forms, we might benefit from removing them, though we also want to learn what are words that should be labelled as neither, so we will experiment with both.
+From plotting the top 10 most frequent tokens, we can clearly see that the most common tokens are stopwords and punctuations. In order to both balance our classes and focus learning only on abbreviations and long forms, we might benefit from removing them, though we also want to learn what are words that should be labelled as neither, so we will experiment with both.
 
 Next we will want to test how many labels we have available. To do this, we can get use the word frequency function we have already written. This will show us a distribution on the training set of 'B-O': 32971, 'B-LF': 1462, 'I-LF': 3231, 'B-AC': 2336. In a plot it would look as following:
 
@@ -221,7 +221,318 @@ From the plot, we can see that the dataset is imbalanced towards the B-O class. 
 
 \section{Experiments}
 
-\subsection{Experiment 1}
+\subsection{Experiment 1 - Data-Pre processing}
+
+As the first experiment, we will explore pre-processing the data, by using different techniques. To test, we will use the pre-trained DistilBert model from hugging face transformers. Techniques to be tested will be as follows: 
+
+\begin{enumerate}
+  \item Clean Stopwords and Punctuations
+  \item Stemming
+  \item Lemmatization
+  \item Removing Special Characters
+\end{enumerate}
+
+\subsubsection{Letter Casing}
+
+A common first step in any NLP training is to pre-process the text as the original collection might contain noise. As we have seen from the data analysis, this is true in terms of containing stop words and punctuations.
+
+Let us look at the first 5 words in the first 3 rows:
+\begin{center}
+\begin{tabular}{||c||} 
+    \hline
+    First 5 words Per Row \\ [0.5ex] 
+    \hline\hline
+    ['For', 'this', 'purpose', 'the', 'Gothenburg'] \\ 
+    \hline
+    ['The', 'following', 'physiological', 'traits', 'were'] \\
+    \hline 
+    ['Minor', 'H', 'antigen', 'alloimmune', 'responses'] \\
+    \hline
+\end{tabular}
+\end{center}
+
+
+As our first step, we should make sure that the data is uniform throughout. When we analysed our training tokens, we found that we had 9133 unique tokens. However, this also includes same words with different cased letters. Firstly, let us write a function to lowercase all the tokens:
+
+\begin{lstlisting}[language=Python, caption=Lowercase strings function]
+def data_to_lower(data:list[list[str]]) -> list[list[str]]:
+    return [[token.lower() for token in tokens] for tokens in data]
+\end{lstlisting}
+
+Using the "get word frequency" function we created before, we can now test our original tokens and lower case tokens for unique token count. What we will find is that after lowercasing all of the training dataset tokens, we are left with 8339 unique tokens. 
+
+\subsubsection{Removing punctuations and stopwords}
+
+With our texts being uniform, the next step we can do is to remove all of the punctuations from the text. As they are not words, they increase the B-O count, as well as are one of the most common tokens within the dataset and therefore lean the model to potentially learn more about punctuations than about abbreviations and long forms.
+
+\begin{lstlisting}[language=Python, caption=Code to remove any characters within given list]
+def remove_values(data_collection:DataCollection, remove_values:list|str) -> DataCollection:
+    collection:list[DataRow] = []
+    for data_row in data_collection.collection:
+        new_row:DataRow = DataRow([], [], [])
+        for item_idx, token in enumerate(data_row.tokens):
+            if token not in remove_values:
+                new_row.tokens.append(data_row.tokens[item_idx])
+                new_row.pos.append(data_row.pos[item_idx])
+                new_row.ner.append(data_row.ner[item_idx])
+        if len(new_row.tokens) > 0:
+            collection.append(new_row)
+    new_collection = DataCollection(collection)
+    new_collection.set_unique_ner_tags(tag_list)
+    return new_collection
+\end{lstlisting}
+
+\subsubsection{Removing unique words}
+
+With the above code, we can also create a collection where we remove stopwords and a collection where we remove both stopwords and punctuations. If we remove the stopwords we are left with 31497 tokens. Removing both the stopwords and punctuations leaves us with 22079 words. But what if we were to also only keep unique tokens? We would lose sequential data (as this would not always guarantee B-LF to be followed by I-LF) and we would expect to have worse results in recognition, but to test this out and prove this theory, let us only keep unique words and then also remove stopwords and punctuations.
+
+\begin{lstlisting}[language=Python, caption=Code to make tokens unique only]
+def unique_collection(data_collection:DataCollection) -> DataCollection:
+    collection:list[DataRow] = []
+    unique_tokens:list[str] = []
+    for data_row in data_collection.collection:
+        new_row:DataRow = DataRow([], [], [])
+        for item_idx, token in enumerate(data_row.tokens):
+            if token not in unique_tokens:
+                new_row.tokens.append(data_row.tokens[item_idx])
+                new_row.pos.append(data_row.pos[item_idx])
+                new_row.ner.append(data_row.ner[item_idx])
+                unique_tokens.append(token)
+        if len(new_row.tokens) > 0:
+            collection.append(new_row)
+    new_collection = DataCollection(collection)
+    new_collection.set_unique_ner_tags(tag_list)
+    return new_collection
+\end{lstlisting}
+
+When running the unique token collection with stop words and punctuations removed, we are left with 8198 tokens. When we plot all of these collections together, we can view their sizes:
+
+\includegraphics[scale=0.8]{data_processing}
+
+\subsubsection{Stemming and Lemmatisation}
+
+Next step is to create 2 more collections for our experiments - stemmed and lemmatisation collections.
+
+Stemming is a text pre-processing technique used to reduce words to their root or base form. The goal of stemming is to simplify and standardize words, which helps improve the performance of text classification. In lemmatisation we also try to reduce a given word to its root word.
+
+The difference between the two is that in stemming we remove last few characters from a word, often leading to incorrect meanings and spelling. However in lemmatisation, we consider the context and convert the word to its meaningful base form, which is called Lemma.
+
+The issue with stemming can be that the word loses its original meaning completely. However, with lemmatising, we might not scale the word back enough to correlate 2 words to be the same. Both have their pros and cons.
+
+In order to do this, we will import the appropriate NLTK libraries
+
+\begin{lstlisting}[language=Python, caption=NLTK libraries for stemming and lemmatising]
+from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+
+from nltk.stem import WordNetLemmatizer
+lemmatizer = WordNetLemmatizer()
+\end{lstlisting}
+
+To stem or lemmatise tokens, we can do the following:
+
+\begin{lstlisting}[language=Python, caption=Tokens to stemmed and lemma]
+stemmed_tokens = [[ps.stem(token) for token in token_list]for token_list in train_collection.get_token_list()]
+lemmatised_tokens = [[lemmatizer.lemmatize(token) for token in token_list]for token_list in train_collection.get_token_list()]
+\end{lstlisting}
+
+The NLTK lemmatiser can also take an additional pos tag value: 
+    "n" for nouns,
+    "v" for verbs, 
+    "a" for adjectives, 
+    "r" for adverbs and 
+    "s" for satellite adjectives.
+
+With this, we can build a slightly more sophisticated lemmatiser and see if it has a more different effect.
+
+\begin{lstlisting}[language=Python, caption=Lemma with POS handling]
+def collection_to_lemma(data_collection:DataCollection) -> DataCollection:
+    collection:list[DataRow] = []
+    for data_row in data_collection.collection:
+        new_row:DataRow = DataRow([], [], [])
+        for item_idx, pos in enumerate(data_row.pos):
+            token = data_row.tokens[item_idx]
+            new_token = ""
+            if pos == "NOUN":
+                new_token = lemmatizer.lemmatize(token, "n")
+            elif pos == "VERB":
+                new_token = lemmatizer.lemmatize(token, "v")
+            elif pos == "ADJ":
+                new_token = lemmatizer.lemmatize(token, "a")
+            elif pos == "ADV":
+                new_token = lemmatizer.lemmatize(token, "r")
+            else:
+                new_token = lemmatizer.lemmatize(token)
+            new_row.tokens.append(new_token)
+            new_row.pos.append(data_row.pos[item_idx])
+            new_row.ner.append(data_row.ner[item_idx])
+        if len(new_row.tokens) > 0:
+            collection.append(new_row)
+    new_collection = DataCollection(collection)
+    new_collection.set_unique_ner_tags(tag_list)
+    return new_collection
+\end{lstlisting}
+
+\subsubsection{Removing special characters}
+
+One last thing we can do, is to remove special characters. Sometimes learning these characters can result in the model accuracy dropping and thus we can see if there are any within our dataset and remove them.
+
+\begin{lstlisting}[language=Python, caption=Special character removal]
+def is_special_character(token):
+    if len(token) > 1:
+        return False
+    else:
+        return ord(token) < 32 or ord(token) > 127 # true if not special character 
+
+
+special_chars = []
+for token in flatten_list(train_collection.get_token_list()):
+    if is_special_character(token):
+        special_chars.append(token)
+
+train_no_special_collection = remove_values(train_collection, list(set(special_chars)))
+\end{lstlisting}
+
+\subsubsection{Evaluation}
+
+Now that we have set up our data for testing, we require a model to test the accuracy on. As such, we will build the Hugging Face Token Classification model for DistilBERT and test our data processed data on that. Since our data is already in collections, it will be easy to add it as we go.
+
+For the model, we will have to build an auto tokeniser, which will both encode and pad our tokens and align labels. It will also give us access to hyper parameterisation. However, we will explain those in more detail in the coming experiments. For now we will focus on only the evaluation of data processing. \\
+
+The model is trained with the following arguments: \\
+
+\begin{tabular}{ |p{5cm}||p{5cm}| }
+    \hline
+    \multicolumn{2}{|c|}{Training Arguments} \\
+    \hline
+    Epochs & 50 \\
+    \hline
+    Learning Rate & 2e-5  \\
+    \hline
+    Batch Size & 16  \\
+    \hline
+    Weight Decay & 0.01  \\
+    \hline
+    Evaluation Strategy & Epoch  \\
+    \hline
+    Save Strategy & Epoch  \\
+    \hline
+\end{tabular} \\ \\
+
+We will run this through the training loop, using the auto tokeniser and dataloader from distilBERT, resulting in the following confusion matrix:
+
+\includegraphics[scale=0.5]{exp1_result}
+
+\begin{tabular}{ |p{6cm}||p{1.5cm}|p{1.5cm}| }
+    \hline
+    \multicolumn{3}{|c|}{Experiment 1 Results} \\
+    \hline
+    Test & F1 Score & Time \\
+    \hline
+    Original & 82\% & 207.11s \\
+    \hline
+    Lowered & 81\% & 211.40s  \\
+    \hline
+    Removed Punct & 73\% & 190.46s  \\
+    \hline
+    Removed Stop & 80\% & 200.66s  \\
+    \hline
+    Removed Punct/Stop & 72\% & 189.43s  \\
+    \hline
+    Unique Words, Removed Punct/Stop & 60\% & 193.52s  \\
+    \hline
+    Stemmed & 80\% & 252.64s  \\
+    \hline
+    Lemmatised & 82\% & 228.48s  \\
+    \hline
+    Removed Special & 81\% & 216.06s  \\
+    \hline
+\end{tabular} \\ \\
+
+As we can see from our results of training over 50 epochs that our best results come from the orginial text and lemmatisation. We can also see that worst results are from only using unique words while removing stop words and punctuations. This makes sense, as we are removing a lot of data as well as breaking sequential order of B-LF and I-LF, resulting in worse capability of predicting, which lines up with our predictions before.
+
+What is more interesting is that removing stopwords actually does not affect the f1 score too much, but removing punctuations does. This is potentially down to the fact that we have more punctuations than stopwords (as seen in the data analysis section), meaning that we lose more data when removing the punctuations and therefore causing a loss in score. On the other hand, as we do not have many special characters in our training set, removing them barely changes the scoring.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Experiment 2 - Text Encoding / Transformation}
+
+For the second experiment we will test out text vectorisation and see how that will affect the outcome of training. For testing, we will use the pre-trained DistilBert model.
+
+Tokenisers are used to convert raw text into numerical tokens which makes it possible for machine learning models to be understood. When using hugging face models, the AutoTokenizer class makes it easy to select and load appropriate tokenisers for pre-trained models. This simplifies the process of selecting the correct tokeniser associated with our model, streamlining the workflow.
+
+However, to test different tokenisation techniques, we will be also tokenising the text ourselves, using different methods to see how it improves (or unimproves) the training process. The methods we will use for tokenisation are as following:
+
+\begin{enumerate}
+  \item Word2vec
+  \item Glove
+  \item Fasttext
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Experiment 3 - Hyper Parameters}
+DistilBert FineTuning
+
+
+
+
+
+
+
+
+\subsection{Experiment 4 - Pre-Trained Models}
+
+Spacy vs DistilBert
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 \subsubsection{Method}
 Experimentation with four different experimental setups, where you might be trying out
 different options such as (listing more than four different experiments here, so choose four).
@@ -235,15 +546,32 @@ error analysis on the predictions obtained. Your PDF report should have a subhea
 each of the 4 experiment variations, numbered 3.1, 3.2, 3.3, and 3.4. (20 marks, 5 marks per
 variation)
 
-\subsection{Experiment 2}
-\subsection{Experiment 3}
-\subsection{Experiment 4}
+
+
+
+
+
+
+
+
+
+
 
 \section{Conclusion}
 \subsection{Experiment Result}
 Discuss best and worst results from the testing, on all the experiments you conducted and
 mention if there was any need to adjust any variables and re-run the experiment (8 marks, 2
 mark per variation)
+
+
+
+
+
+
+
+
+
+
 
 \subsection{Outcome}
 Evaluate the overall attempt and outcome – this goes beyond the accuracy of the models, so
