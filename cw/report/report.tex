@@ -419,7 +419,9 @@ The model is trained with the following arguments: \\
     \hline
 \end{tabular} \\ \\
 
-We will run this through the training loop, using the auto tokeniser and dataloader from distilBERT, resulting in the following confusion matrix:
+As we can see from our results below, training over 50 epochs that our best results come from the orginial text and lemmatisation. We can also see that worst results are from only using unique words while removing stop words and punctuations. This makes sense, as we are removing a lot of data as well as breaking sequential order of B-LF and I-LF, resulting in worse capability of predicting, which lines up with our predictions before.
+
+What is more interesting is that removing stopwords actually does not affect the f1 score too much, but removing punctuations does. This is potentially down to the fact that we have more punctuations than stopwords (as seen in the data analysis section), meaning that we lose more data when removing the punctuations and therefore causing a loss in score. On the other hand, as we do not have many special characters in our training set, removing them barely changes the scoring.
 
 \includegraphics[scale=0.5]{exp1_result}
 
@@ -449,34 +451,7 @@ We will run this through the training loop, using the auto tokeniser and dataloa
     \hline
 \end{tabular} \\ \\
 
-As we can see from our results of training over 50 epochs that our best results come from the orginial text and lemmatisation. We can also see that worst results are from only using unique words while removing stop words and punctuations. This makes sense, as we are removing a lot of data as well as breaking sequential order of B-LF and I-LF, resulting in worse capability of predicting, which lines up with our predictions before.
-
-What is more interesting is that removing stopwords actually does not affect the f1 score too much, but removing punctuations does. This is potentially down to the fact that we have more punctuations than stopwords (as seen in the data analysis section), meaning that we lose more data when removing the punctuations and therefore causing a loss in score. On the other hand, as we do not have many special characters in our training set, removing them barely changes the scoring.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+\newpage
 
 \subsection{Experiment 2 - Text Encoding / Transformation}
 
