@@ -5,6 +5,10 @@
 \usepackage[table]{xcolor}
 \usepackage{listings}
 \usepackage{xcolor}
+
+\usepackage{biblatex} 
+\addbibresource{references.bib} 
+
 \usepackage{graphicx}
 \graphicspath{ {./imgs/} }
 
@@ -431,23 +435,23 @@ What is more interesting is that removing stopwords actually does not affect the
     \hline
     Test & F1 Score & Time \\
     \hline
-    Original & 82\% & 207.11s \\
+    Original & O:97\%, AC:81\%, BLF:75\%, ILF:82\% & 245.85s \\
     \hline
-    Lowered & 81\% & 211.40s  \\
+    Lowered & O:97\%, AC:82\%, BLF:78\%, ILF:83\% & 258.99s  \\
     \hline
-    Removed Punct & 73\% & 190.46s  \\
+    Removed Punct & O:95\%, AC:78\%, BLF:60\%, ILF:66\% & 191.58s  \\
     \hline
-    Removed Stop & 80\% & 200.66s  \\
+    Removed Stop & O:97\%, AC:82\%, BLF:70\%, ILF:81\% & 198.74s  \\
     \hline
-    Removed Punct/Stop & 72\% & 189.43s  \\
+    Removed Punct/Stop & O:94\%, AC:75\%, BLF:60\%, ILF:62\% & 174.76s  \\
     \hline
-    Unique Words, Removed Punct/Stop & 60\% & 193.52s  \\
+    Unique Words, Removed Punct/Stop & O:91\%, AC:54\%, BLF:39\%, ILF:60\% & 142.34s  \\
     \hline
-    Stemmed & 80\% & 252.64s  \\
+    Stemmed & O:97\%, AC:80\%, BLF:70\%, ILF:81\% & 231.56s  \\
     \hline
-    Lemmatised & 82\% & 228.48s  \\
+    Lemmatised & O:97\%, AC:81\%, BLF:76\%, ILF:83\% & 212.98s  \\
     \hline
-    Removed Special & 81\% & 216.06s  \\
+    Removed Special & O:97\%, AC:78\%, BLF:70\%, ILF:81\% & 220.14s  \\
     \hline
 \end{tabular} \\ \\
 
@@ -457,7 +461,7 @@ What is more interesting is that removing stopwords actually does not affect the
 
 For the second experiment we will test out text vectorisation and see how that will affect the outcome of training. For testing, we will build our own model using a CNN model.
 
-Tokenisers are used to convert raw text into numerical tokens which makes it possible for machine learning models to be understood. When using hugging face models, the AutoTokenizer class makes it easy to select and load appropriate tokenisers for pre-trained models, where they encode words and underneath the hood vectorise them. This simplifies the process of selecting the correct tokeniser associated with model, streamlining the workflow.
+Tokenisers are used to convert raw text into numerical tokens which makes it possible for machine learning models to be understood. When using hugging face models, the AutoTokenizer class makes it easy to select and load appropriate tokenisers for pre-trained models, where they encode words and vectorise them. This simplifies the process of selecting the correct tokeniser associated with model, streamlining the workflow.
 
 However, to test different vectorisation techniques and see how it works, we will be vectorising the tokens ourselves, using different methods to see how it improves (or unimproves) the training process. The methods we will use for vectorisation are as following:
 
@@ -476,7 +480,7 @@ The way that the word2vec works is by generating vectors for words that are supp
 from gensim.models import Word2Vec
 \end{lstlisting} 
 
-Methods often used in Word2Vec is CBOW or Skip Gram. Both algorithms use nearby words in order to extract the semantics of the words. In Skip-Gram, we try to predict the context words using the main word. In Continuous Bag of Words (CBOW), we want to use context words to predict the main words. Essentially we are doing reverse of each other.
+Methods often used in Word2Vec is CBOW or Skip Gram \cite{cbowvsskip}. Both algorithms use nearby words in order to extract the semantics of the words. In Skip-Gram, we try to predict the context words using the main word. In Continuous Bag of Words (CBOW), we want to use context words to predict the main words. Essentially we are doing reverse of each other.
 
 Before we can use vectorisation in Word2Vec, we need to create a collection of all tokens that the Word2Vec will use to create a "library" of words it can create vectors for. It also uses it to position tokens that should be close to each other, as it has train method to position these tokens as well.
 
@@ -660,7 +664,7 @@ To avoid this issue, let's split the sentences up to the average sentence length
 
 \subsubsection{FastText}
 
-Similarly to Word2Vec, FastText can be used to vectorise words. In fact both of them can be imported from gensim and interacted with almost identically. However in FastText, each word is represented as the average of the vector representation of its character n-grams along with the word itself. \\
+Similarly to Word2Vec, FastText can be used to vectorise words. In fact both of them can be imported from gensim and interacted with almost identically. However in FastText, each word is represented as the average of the vector representation of its character n-grams along with the word itself \cite{fasttext}. \\
 
 Consider the word "wilds" and n-gram = 3, the representative n-grams would be: \\
 wi, wil, ild, lds, ds and wilds \\
@@ -669,7 +673,7 @@ Because of this, the vector representation would be different per token and thus
 
 \subsubsection{CNN Model}
 
-The CNN model itself is fairly simplistic - it uses 2 convolution layers, linear layers and some pooling. The loss function is MSELoss and Optimiser Adam. Vector sizes for words has been set to 25.
+The CNN model itself is fairly simplistic - it uses 2 convolution layers, linear layers and some pooling \cite{CNNpytroch}. The loss function is MSELoss and Optimiser Adam. Vector sizes for words has been set to 25.
 
 \begin{lstlisting}[language=Python, caption=CNN and Dataloader]
 import torch
@@ -727,9 +731,9 @@ The training argument for the model are as follows:
     \hline
     \multicolumn{2}{|c|}{Training Arguments} \\
     \hline
-    Epochs & 50 \\
+    Epochs & 100 \\
     \hline
-    Learning Rate & 1e-3  \\
+    Learning Rate & 5e-5  \\
     \hline
     Loss Function & MSELoss  \\
     \hline
@@ -745,17 +749,17 @@ The training argument for the model are as follows:
     \hline
     Test & F1 Score & Time \\
     \hline
-    Word2Vec CBOW & 2\% & 73.15s \\
+    Word2Vec CBOW & O:85\%, AC:9\%, BLF:2\%, ILF:1\% & 143.05s \\
     \hline
-    Word2Vec Skip Gram & 6\% & 30.53s  \\
+    Word2Vec Skip Gram & O:85\%, AC:11\%, BLF:1\%, ILF:4\% & 132.67s  \\
     \hline
-    FastText & 5\% & 30.26s  \\
+    FastText & O:80\%, AC:10\%, BLF:11\%, ILF:8\% & 100.67s  \\
     \hline
 \end{tabular} \\ \\
 
-From our end results, while they are not great, we can see that Word2Vec Skip gram and FastText seem to perform better than CBOW. This is most likely due to the fact how the vectors are calculated in Skip Gram and FastText - the Skip Gram places importance on the words around the word we are looking at and Fast Text looks at the words as n-grams, while as CBOW seems to only look at the word itself when training.
+From our end results, while they are not great, we can see that FastText seem to perform better than Word2Vec. This is most likely due to the fact how the vectors are calculated in FastText - Word2Vec looks at words individually for CBOW, while Fast Text looks at the words as n-grams. 
 
-It is noted that Skip Grams tend to work better on smaller datasets.
+What is surprising is that Skip Gram is supposed to look at the surrounding words when generating the vectors as well, but there is potentially too much noise added from this or the imbalance in the dataset is confusing the data.
 
 The model itself seems to learn towards the negative padding, as it thinks it needs to go from positive numbers to negative numbers. There is also a heavy imbalance towards the B-O label in the dataset, which skews the results.
 
@@ -769,7 +773,7 @@ In this section we will explore two pre-trained models to label our tokens - Dis
 
 \subsubsection{DistilBert}
 
-Since our data is already in collections, it will be easy to add it as we go. First thing we have to do is to take our tokens and encode them. Hugging face offers transformers that help us achieve this by calling the "AutoTokenizer" class. This will return our tokens as a series of input IDs (numbers) and an attention mask. These keys might vary depending on the model, but for DistilBERT, the two returned keys are input ids and attention mask.
+Since our data is already in collections, it will be easy to add it as we go. First thing we have to do is to take our tokens and encode them. Hugging face offers transformers that help us achieve this by calling the "AutoTokenizer" class. This will return our tokens as a series of input IDs (numbers) and an attention mask. These keys might vary depending on the model, but for DistilBERT, the two returned keys are input ids and attention mask \cite{distilBertModel}.
 
 \begin{lstlisting}[language=Python, caption=Auto Tokeniser]
 from transformers import AutoTokenizer
@@ -912,7 +916,7 @@ When doing the predictions, we use the same method as with computing metrics to 
 
 \subsubsection{spaCy}
 
-For spacy, we will need to setup the required libraries and paths first. Once that is complete, we will start to create a vocabulary. In order to do so, we have to load our train and test dataset into the "doc". This is spaCys way to index words and labels. We create spaces where the words are separated and then add both words and ner labels to the vocabulary:
+For spacy, we will need to setup the required libraries and paths first, following the training guidelines \cite{spacyTrainPipeline}. Once that is complete, we will start to create a vocabulary. In order to do so, we have to load our train and test dataset into the "doc". This is spaCys way to index words and labels. We create spaces where the words are separated and then add both words and ner labels to the vocabulary:
 \begin{lstlisting}[language=Python, caption=spaCy DocBin]
 train_docbin:DocBin = DocBin()
 test_docbin:DocBin = DocBin()
@@ -960,13 +964,15 @@ To fix that we will have to pad the tokens with invalid tags if they are shorter
     \hline
     Test & F1 Score & Time \\
     \hline
-    DistilBERT & 82\% & 211.15s \\
+    DistilBERT & O:97\%, AC:80\%, BLF:73\%, ILF:82\% & 208.42s \\
     \hline
-    spaCy & 81\% & 1104.01s  \\
+    spaCy & O:97\%, AC:83\%, BLF:80\%, ILF:85\% & 1104.01s  \\
     \hline
 \end{tabular} \\ \\
 
-Both models perform almost indentically well - spaCy manages to be slightly better at longform start, while DistilBERT manages to find abreviations and longform inner parts better. However, both reach a f1 score of over 80\% and have little difference between them in terms of scores.
+Both models perform almost indentically well - spaCy manages to be slightly better at at all of the labels. but DistilBERT is not far behind in calculations. However, spaCy does reach an f1 score of over 80\% for each label, meaning it did perform better. This is however the case that spaCy has been allowed to train as longer, meaning that it will be more accurate in it's resolution.
+
+However, DistilBERT has trained very close results in 1/4 of the time and thus is a better contender for getting accurate results quickly.
 
 \newpage
 
@@ -984,7 +990,9 @@ The 6 final tests with the hyper parameters will be as following:
   \item Epochs
 \end{enumerate}
 
-As we are using the DistilBERT model to hyper parameterise we can rerun our pipeline setup before and change arguments as we go. The results of the testing are as follows:
+As we are using the DistilBERT model to hyper parameterise we can rerun our pipeline setup before and change arguments as we go. As the pipeline has an easy way to make training arguments \cite{TrainingArgs} we will explore the hyper parameters made available to us \cite{Hyperparmeters}.
+
+The results of the testing are as follows:
 
 \includegraphics[scale=0.5]{exp4_result}
 
@@ -994,21 +1002,23 @@ As we are using the DistilBERT model to hyper parameterise we can rerun our pipe
     \hline
     Test & F1 Score & Time \\
     \hline
-    Learning Rate & 0\% & 86.75s \\
+    Learning Rate & O:92\%, AC:0\%, BLF:0\%, ILF:0\% & 95.08s \\
     \hline
-    Scheduler - Cosine & 82\% & 86.02s  \\
+    Scheduler - Cosine & O:97\%, AC:82\%, BLF:76\%, ILF:83\% & 95.31s  \\
     \hline
-    Scheduler - Polynomial & 82\% & 86.27s  \\
+    Scheduler - Polynomial & O:97\%, AC:81\%, BLF:75\%, ILF:83\% & 94.78s  \\
     \hline
-    Batch Size & 81\% & 102.10s  \\
+    Batch Size & O:97\%, AC:80\%, BLF:71\%, ILF:82\% & 98.01s  \\
     \hline
-    Weight Decay & 82\% & 86.79s  \\
+    Weight Decay & O:97\%, AC:81\%, BLF:75\%, ILF:83\% & 85.59s  \\
     \hline
-    Epochs & 82\% & 259.87s  \\
+    Epochs & O:97\%, AC:82\%, BLF:76\%, ILF:83\% & 255.69s  \\
     \hline
 \end{tabular} \\ \\
 
 Most of the results are as expected, the only exception being the learning rate, as the original hypothesis would have been that too large or a learning rate would decrease the score, but it has made the model completely unable to learn. However, on further query, this does make sense as it is most likely only able to learn the largest imbalance in the dataset, which is B-O. This further proves that the dataset imbalance makes it difficult for the model to learn.
+
+It also makes sense that the best hyper parameter result is having more epochs to train, as it gives the model more time to learn. We can also see that slightly adjusting hyper parameters makes relatively no difference to the model.
 
 \newpage
 
@@ -1023,11 +1033,11 @@ In experiment 1, the best performing data results were the original tokens and l
 Experiment 2 holds overall the worst result, as the CNN model only reachs a maximum of 6\% f1 score. It proves that an untrained model is not able to perform well on an unbalanced dataset. As mentioned above, there are a multitude of things that could be further attempted - balancing the dataset, windowing and one-hot encoding to avoid negative padding issues.
 Between the tests themselves however, the best result seemed to be word2vec skip-gram, most likely due to the ability of being able to look around the words when constructing the vectors. \\
 
-Experiment 3 produced overall some of the best results as both DistilBERT spaCy, both came above 80\% f1 score. Both of them outperform other models simply due to the fact, that they have already been built to capture the semantics of sentences before fine tuning it to the dataset. Thus, it does not need to start from scratch, unlike the CNN model.
+Experiment 3 produced overall some of the best results as both DistilBERT and spaCy came above 80\% f1 score. Both of them outperform other models simply due to the fact, that they have already been built to capture the semantics of sentences before fine tuning it to the dataset. Thus, it does not need to start from scratch, unlike the CNN model.
 
 While the DistilBERT model itself is slightly better, given more time to train, potentially spaCy could surpass that. Where DistilBERT does excel however, is time. It takes far less time to train the model than with spaCy and both of them achieve relatively similar results. Not only this, but they are far easier to configure and run than building from scratch and achieve much greater results.
 
-Because of this, both of them are good candidates for named entity recognition. \\
+It is important to note here that spaCy is much slower in calculating the model than distilBERT. \\
 
 In experiment 4, almost all the experiments reached a score over 80\%. The only exception to this was changing the learning rate to 2e-3 from 2e-5 which make the model only able to recognise everything as a B-O label, being unable to recognise anything. This makes also sense as the learning rate controls how ambitious the model is in changing its weights. Having too high a learning rate would cause it to be unable to predict anything, as has happened here.
 
@@ -1037,7 +1047,9 @@ In experiment 4, almost all the experiments reached a score over 80\%. The only 
 The overall experiments achieved the tasks that they were set out to do. Testing with data processing, the outcome of the results was mostly as anticipated - more data, even if imbalanced, is better for models that have already learned how to recognise and train on semantics of sentences, while the data being unbalanced causes issues with untrained models.
 
 \subsubsection{What is good enough F1/accuracy?}
-The highest achieved result was 82\%, which was achieved by the DistilBERT model. This is pretty good accuracy, which seems to be able to handle most cases and predict with a degree of confidence a correct label. Obviously a dataset that is unbalanced towards a B-O class and predicting only one label, could achieve a relatively high accuracy by just predicting one label. However, I would say anything above 75\% is a good result.
+The highest achieved result was 84\%, which was achieved by the spaCy model. This is pretty good accuracy, which seems to be able to handle most cases and predict with a degree of confidence a correct label. Obviously a dataset that is unbalanced towards a B-O class and predicting only one label, could achieve a relatively high accuracy by just predicting one label. 
+
+However, I would say anything above 75\% is a good result, as the B-O encompasses about that much of the dataset, meaning that we will not only be looking at accuracy by only predicting the B-O class.
 
 
 \subsubsection{If any of the models did not perform well, what is needed to improve?}
@@ -1046,11 +1058,19 @@ Definitely the issue here lies in the imbalanced data, which could be easily rem
 
 For the CNN model that did not perform well at all, the further tests should include trying to balance the dataset, building one hot encoding into the labels and trying to play around with different vector sizes and potentially trying windowing. All of these might give more context to the model to learn from.
 
+Another option to improve the model in terms of vectorisation is to "cluster" words close to each other. Clustering is a method where words close to each other are assigned to "n" clusters. While this could also be detramental for indvidual word learning, the model could learn generalisation of the words and thus perform better.
+
 \subsubsection{If any of the models performed really well, could/would you make it more efficient
 and sacrifice some quality?}
 
 As the DistilBERT model performed well with the un-cased model, it would be interesting to see if a larger model or even just BERT could out perform it in terms of accuracy. However, we also need to account for speed of the model, as being slightly more accurate is not worth a massive time increase cost.
 
 Another interesting test could be to hyper parameterise the spaCy model to see if that would yield better results than DistilBERT.
+
+\newpage
+
+\section{References}
+
+\printbibliography %Prints bibliography
 
 \end{document}
