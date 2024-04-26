@@ -455,82 +455,562 @@ What is more interesting is that removing stopwords actually does not affect the
 
 \subsection{Experiment 2 - Text Encoding / Transformation}
 
-For the second experiment we will test out text vectorisation and see how that will affect the outcome of training. For testing, we will use the pre-trained DistilBert model.
+For the second experiment we will test out text vectorisation and see how that will affect the outcome of training. For testing, we will build our own model using a CNN model.
 
-Tokenisers are used to convert raw text into numerical tokens which makes it possible for machine learning models to be understood. When using hugging face models, the AutoTokenizer class makes it easy to select and load appropriate tokenisers for pre-trained models. This simplifies the process of selecting the correct tokeniser associated with our model, streamlining the workflow.
+Tokenisers are used to convert raw text into numerical tokens which makes it possible for machine learning models to be understood. When using hugging face models, the AutoTokenizer class makes it easy to select and load appropriate tokenisers for pre-trained models, where they encode words and underneath the hood vectorise them. This simplifies the process of selecting the correct tokeniser associated with model, streamlining the workflow.
 
-However, to test different tokenisation techniques, we will be also tokenising the text ourselves, using different methods to see how it improves (or unimproves) the training process. The methods we will use for tokenisation are as following:
+However, to test different vectorisation techniques and see how it works, we will be vectorising the tokens ourselves, using different methods to see how it improves (or unimproves) the training process. The methods we will use for vectorisation are as following:
 
 \begin{enumerate}
   \item Word2vec
-  \item Glove
   \item Fasttext
 \end{enumerate}
 
+In name entity recognition, using word vectors can give extra context to the models to improve the identification of entities (such as names and locations). This is done by vectorising words and setting similar words near each other.
+
+\subsubsection{Word2Vec}
+
+The way that the word2vec works is by generating vectors for words that are supposed to be close to each other. For instance "man" and "boy" would be close to each other, while "woman" would be further from them, but all would be close to "person". To get started with word2vec, we must import it from the gensim models.
+
+\begin{lstlisting}[language=Python, caption=Word2Vec gensim import]
+from gensim.models import Word2Vec
+\end{lstlisting} 
+
+Methods often used in Word2Vec is CBOW or Skip Gram. Both algorithms use nearby words in order to extract the semantics of the words. In Skip-Gram, we try to predict the context words using the main word. In Continuous Bag of Words (CBOW), we want to use context words to predict the main words. Essentially we are doing reverse of each other.
+
+Before we can use vectorisation in Word2Vec, we need to create a collection of all tokens that the Word2Vec will use to create a "library" of words it can create vectors for. It also uses it to position tokens that should be close to each other, as it has train method to position these tokens as well.
+
+To do this, let us write some code to collect our tokens into one:
+\begin{lstlisting}[language=Python, caption=Creating token library]
+def create_token_library(collections:list[DataCollection], collect_all:bool=True) -> list[list[str]]:
+    unique_tokens:list[str] = []
+    token_lists:list[list[str]] = []
+    for collection in collections:
+        tokens:list[list[str]] = collection.get_token_list()
+        for token_row in tokens:
+            token_rows:list[str] = []
+            for token in token_row:
+                if token not in unique_tokens or collect_all:
+                    token_rows.append(token)
+                    unique_tokens.append(token)
+            if len(token_rows) > 0:
+                token_lists.append(token_rows)
+    return token_lists
+
+\end{lstlisting}
+
+This creates us a list of 50000 tokens, which is the entire set of all of our tokens between our 3 datasets - train, test and validation. With our tokens added to lists, we put these words through the word2vec and it auto indexes it for us, creating embeddings. We can view these the word2vector model to get those embedding numbers.
+
+\begin{lstlisting}[language=Python, caption=Word2Vec model generated]
+w2v_model_CBOW:Word2Vec = Word2Vec(token_lib, min_count=1, vector_size=2, window=5)
+\end{lstlisting}
+
+From this, there are few values we should understand when generating the embeddings and vectors:
+
+\begin{enumerate}
+  \item vector\_size (int, optional) – Dimensionality of the word vectors.
+  \item window (int, optional) – Maximum distance between the current and predicted word within a sentence.
+  \item min\_count (int, optional) – Ignores all words with total frequency lower than this.
+  \item sg ({0, 1}, optional) – 1 for skip-gram; otherwise CBOW.
+\end{enumerate}
+
+To get a word embedding for the word "picture" we can run the following code:
+\begin{lstlisting}[language=Python, caption=Get Word2Vec embedding]
+w2v_model_CBOW.wv.key_to_index["picture"]
+\end{lstlisting}
+
+Looking at the first 5 embeddings, we can see how it generates as a dictionary:
+\begin{center}
+\begin{tabular}{||c||} 
+    \hline
+    First 5 embeddings \\ [0.5ex] 
+    \hline\hline
+    {',': 0, '(': 1, ')': 2, 'the': 3, '.': 4, 'of': 5} \\ 
+    \hline
+\end{tabular}
+\end{center}
+
+However, in order to get the vector representations of words, we have to pass it to the get vector function. This will return us a vector of a size that we give it when we construct our word2vec model. For instance, a representation of a vector size 2 for the word "picture" could be:
+
+\begin{lstlisting}[language=Python, caption=Vector of size 2 representation of word "picture"]
+array([0.0559599 , 0.07942823], dtype=float32)
+\end{lstlisting}
+
+The vector representation also allows us to call similarity between words, as well as get top n words similar to that word.
+
+\begin{lstlisting}[language=Python, caption=Similarity calculations]
+w2v_model_CBOW.wv.similarity('walk', 'bed')
+w2v_model_CBOW.wv.most_similar('bed', topn=5)
+w2v_model_CBOW.wv.most_similar('hour', topn=5)
+\end{lstlisting}
+
+Now, usually CNNs are trained on images by moving a kernel around an image. However, in our case, we do not have an image, but instead text. However, we know that each of the tokens that we have in a row essentially forms a "sentence". if we vectorise the words, especially with 2, we can imagine a graph, where the words are plotted around and thus generate images that we can go across with a kernel. To visualise, we will plot the first two sentances from the train collection:
+
+\begin{lstlisting}[language=Python, caption=Similarity calculations]
+v1:list[tuple[any, str]] = [(w2v_model_CBOW.wv.get_vector(token), token) for token in train_collection.get_token_list()[0]]
+v2:list[tuple[any, str]] = [(w2v_model_CBOW.wv.get_vector(token), token) for token in train_collection.get_token_list()[1]]
+
+def plot_vec(vector:list[tuple[any, str]]):
+    x = []
+    y = []
+    
+
+    for vec, _ in vector:
+        x.append(vec[0])
+        y.append(vec[1])
+  
+    fig, ax = plt.subplots()
+    ax.scatter(x, y) 
+
+    for idx, (_, token) in enumerate(vector):
+        ax.annotate(token, (x[idx], y[idx]))
+
+plot_vec(v1)
+plot_vec(v2)
+\end{lstlisting}
+  
+\noindent \includegraphics[scale=0.8]{sent_1_vec_plot}
+\includegraphics[scale=0.8]{sent_2_vec_plot}
+
+We can now actually visually see that stopwords and punctuations actually draw quite far away from the rest of our words.
+
+However, in order to do this, we would need the images to all be the same size. This is why we require padding. We calculate the max sentence length and then pad all the sentences with lesser size to be the same.
+
+\begin{lstlisting}[language=Python, caption=Vectorise and pad sentences]
+def find_max_token_row(tokens:list[list[any]]) -> int:
+    max_token_row_size = 0
+    for token_row in tokens:
+        if len(token_row) > max_token_row_size:
+            max_token_row_size = len(token_row)
+    return max_token_row_size
+
+def pad_vectors(vector_row:list, max_row_value:int, pad_token:any) -> None:
+    padding_size = max_row_value - len(vector_row) # how many numbers do we need to pad with
+    
+    if padding_size == 0:
+        return # vector does not required padding, so return early
+    elif padding_size < 0:
+        print("ERROR - max row value is somehow smaller than the given vector row length! This is not allowed!")
+        return
+
+    for _ in range(padding_size):
+        vector_row.append(pad_token)
+
+def vectorise_tokens(data_collection:DataCollection, vectorisation_model:FastText|Word2Vec, max_token_row_size:int, pad_token:str, pad_label_token:int) -> list[dict]:
+    tokens = data_collection.get_token_list()
+    ner_tags = data_collection.ner_as_idx
+
+    vectorised_tokens = []
+    vectorised_ner = []
+
+    for token_row, ner_row in zip(tokens, ner_tags):
+        ner_rows = []
+        token_rows = []
+        for token, ner in zip(token_row, ner_row):
+            if vectorisation_model.wv.has_index_for(token):
+                token_rows.append(vectorisation_model.wv.get_vector(token))
+                ner_rows.append(ner)
+        if len(token_rows) > 0:
+            vectorised_tokens.append(token_rows)
+            vectorised_ner.append(ner_rows)
+
+    for vec_token_row, vec_ner_row in zip (vectorised_tokens, vectorised_ner):
+        pad_vectors(vec_token_row, max_token_row_size, vectorisation_model.wv.get_vector(pad_token))
+        pad_vectors(vec_ner_row, max_token_row_size, pad_label_token)
+
+    return vectorised_tokens, vectorised_ner
+\end{lstlisting}
+
+While in concept, this might seem a great way to solve this issue, we might note that in our train datasets case, the longest sentence is 323, but the average sentence length is only 38. This means that we will have a majority of sentences that have been padded by an extreme amount, making the sentence consist mostly of padding, rather than of the sentence.
+
+\begin{lstlisting}[language=Python, caption=Split sentences to max size]
+def get_avg_sent_size(collection:DataCollection):
+    sent_token_sum = 0
+    for token_row in collection.get_token_list():
+        sent_token_sum += len(token_row)
+    return (sent_token_sum/len(collection.get_token_list()))
+
+def split_list(row:list, max_sent_size:int, split_into:int) -> list[list[str]]:
+    new_list = []
+    for idx in range(split_into):
+        if idx != split_into:
+            new_list.append(row[idx:idx+max_sent_size])
+        else:
+            new_list.append(row[idx:]) # append the remaining values!
+    return new_list
+
+def split_sentances_to_max_size(max_sent_size:int, collection:DataCollection, tag_list:dict) -> DataCollection:
+    data_row_list:list[DataRow] = []
+    for idx, data_row in enumerate(collection.collection):
+        if len(data_row.tokens) > max_sent_size:
+            split_into = math.ceil(len(data_row.tokens)/max_sent_size)
+            token_lists = split_list(data_row.tokens, max_sent_size, split_into)
+            pos_lists = split_list(data_row.pos, max_sent_size, split_into)
+            ner_lists = split_list(data_row.ner, max_sent_size, split_into)
+            for row_idx in range(split_into):
+                data_row_list.append(DataRow(token_lists[row_idx], pos_lists[row_idx], ner_lists[row_idx]))
+        else:
+            data_row_list.append(data_row)
+    new_collection = DataCollection(data_row_list)
+    new_collection.set_unique_ner_tags(tag_list)
+    return new_collection
+\end{lstlisting}
+
+To avoid this issue, let's split the sentences up to the average sentence length - this will introduce issues in our semantics of B-LF and I-LF as they will potentially be broken across two sentences. However, this is still more optimal than having a majority padding solution.
+
+\subsubsection{FastText}
+
+Similarly to Word2Vec, FastText can be used to vectorise words. In fact both of them can be imported from gensim and interacted with almost identically. However in FastText, each word is represented as the average of the vector representation of its character n-grams along with the word itself. \\
+
+Consider the word "wilds" and n-gram = 3, the representative n-grams would be: \\
+wi, wil, ild, lds, ds and wilds \\
+
+Because of this, the vector representation would be different per token and thus yield a different training result.
+
+\subsubsection{CNN Model}
+
+The CNN model itself is fairly simplistic - it uses 2 convolution layers, linear layers and some pooling. The loss function is MSELoss and Optimiser Adam. Vector sizes for words has been set to 25.
+
+\begin{lstlisting}[language=Python, caption=CNN and Dataloader]
+import torch
+import torch.nn.functional as F
+
+class CNNModel(torch.nn.Module):
+
+    def __init__(self):
+        super(CNNModel, self).__init__()
+        self.conv1 = torch.nn.Conv2d(1, 6, 1)
+        self.conv2 = torch.nn.Conv2d(6, 16, 1)
+        
+        self.fc1 = torch.nn.Linear(864, 648)  
+        self.fc2 = torch.nn.Linear(648, 432)
+        self.fc3 = torch.nn.Linear(432, 216)
+        self.fc4 = torch.nn.Linear(216, 38) # 38 is the max sentance size
+
+    def forward(self, x: torch.Tensor):
+        x = x.unsqueeze(-1)
+        x = torch.permute(x, (0, 3, 2, 1))
+        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        x = x.view(-1, self.num_flat_features(x))
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = self.fc4(x)
+        return x
+
+    def num_flat_features(self, x):
+        size = x.size()[1:] 
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+
+class WindowDataset(torch.utils.data.Dataset):
+    def __init__(self, data_inputs:list[list[list[float]]], data_labels:list[list[list[float]]]):
+        self.inputs = data_inputs
+        self.labels = data_labels
+        self.length = len(data_inputs)
+
+    def __getitem__(self, idx):
+        inputs = torch.from_numpy(np.array(self.inputs[idx]))
+        labels = torch.from_numpy(np.array(self.labels[idx]))
+        return inputs, labels
+
+    def __len__(self):
+        return self.length
+\end{lstlisting}
+
+The training argument for the model are as follows:
+
+\begin{tabular}{ |p{5cm}||p{5cm}| }
+    \hline
+    \multicolumn{2}{|c|}{Training Arguments} \\
+    \hline
+    Epochs & 50 \\
+    \hline
+    Learning Rate & 1e-3  \\
+    \hline
+    Loss Function & MSELoss  \\
+    \hline
+    Optimiser & Adam  \\
+    \hline
+\end{tabular} \\ \\
+
+\includegraphics[scale=0.5]{exp2_result}
+
+\begin{tabular}{ |p{6cm}||p{1.5cm}|p{1.5cm}| }
+    \hline
+    \multicolumn{3}{|c|}{Experiment 1 Results} \\
+    \hline
+    Test & F1 Score & Time \\
+    \hline
+    Word2Vec CBOW & 2\% & 73.15s \\
+    \hline
+    Word2Vec Skip Gram & 6\% & 30.53s  \\
+    \hline
+    FastText & 5\% & 30.26s  \\
+    \hline
+\end{tabular} \\ \\
+
+From our end results, while they are not great, we can see that Word2Vec Skip gram and FastText seem to perform better than CBOW. This is most likely due to the fact how the vectors are calculated in Skip Gram and FastText - the Skip Gram places importance on the words around the word we are looking at and Fast Text looks at the words as n-grams, while as CBOW seems to only look at the word itself when training.
+
+It is noted that Skip Grams tend to work better on smaller datasets.
+
+The model itself seems to learn towards the negative padding, as it thinks it needs to go from positive numbers to negative numbers. There is also a heavy imbalance towards the B-O label in the dataset, which skews the results.
+
+What could be done to avoid the negative padding is to one-hot encode all the labels in the future, as well as use "windowing" - essentially turning each token into a collection of tokens that surround the word itself.
+
+\newpage
+
+\subsection{Experiment 3 - Pre-Trained Models}
+
+In this section we will explore two pre-trained models to label our tokens - DistilBERT and spaCy. We have been using DistilBERT throughout the experiments, but now we will explain how to build it, as well as with spaCy.
+
+\subsubsection{DistilBert}
+
+Since our data is already in collections, it will be easy to add it as we go. First thing we have to do is to take our tokens and encode them. Hugging face offers transformers that help us achieve this by calling the "AutoTokenizer" class. This will return our tokens as a series of input IDs (numbers) and an attention mask. These keys might vary depending on the model, but for DistilBERT, the two returned keys are input ids and attention mask.
+
+\begin{lstlisting}[language=Python, caption=Auto Tokeniser]
+from transformers import AutoTokenizer
+from transformers import BatchEncoding
+tokenizer = AutoTokenizer.from_pretrained("distilbert/distilbert-base-uncased")
+
+tokenized_input:BatchEncoding = tokenizer(train_collection.get_token_list()[0], is_split_into_words=True) # convert tokens to numbers (input_ids) and attention_mask
+tokenized_words = tokenizer.convert_ids_to_tokens(tokenized_input["input_ids"]) # converts inputs numbers to words again
+\end{lstlisting}
+
+\noindent This will yield a result as follows:
+
+\begin{lstlisting}[language=Python, caption=Auto Tokeniser output]
+Original Tokens	: ['for', 'this', 'purpose', 'the', 'gothenburg']
+Tokenised Inputs	: [101, 2005, 2023, 3800, 1996, 22836]
+Tokenised Inputs to Words	: ['[CLS]', 'for', 'this', 'purpose', 'the', 'gothenburg']
+Original Token Len	: 15
+Tokenised Input Len	: 19
+\end{lstlisting}
+
+There are two things that we will notice from here. The first is that when encoding happens with the Auto Tokeniser, it sometimes decides on its own to split the words even more. For instance, the word "gypes" has been split into "g", "ype" and "s". Secondly, there is a CLS and SEP added to the list of tokens. These two tags mean start and end of tokens (or a sentence) for the model to know.
+
+Because of this, when we print the length of the original tokens and the new tokenised inputs, we notice that the lengths no longer match up. This will be problem for our labels, as the NER tags are set up to match the length of the tokens. In order to fix this issue, we have to write a function that will "pad" the tokens that have been added with -100.
+
+Helpfully, the tokenizer has a function called "word\_ids" that will return the ids of the words sequentially and mark special tokens as "none":
+
+\begin{lstlisting}[language=Python, caption=Auto Tokeniser word ids]
+print(tokenized_input.word_ids())
+[None, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 11, 12, 13, 14, None]
+\end{lstlisting}
+
+As we can see, where the word "gypes" is, it is represented by 3 sequential "10"s that note that the word has been split into three. There is however 1 more issue - DistilBERT supports tokens of only size 512. Because the tokeniser splits our tokens into extra tokens, we need to make sure that we do not let the tokens become longer than 512. However, luckily this has already been handled by the tokeniser function by giving it "max token length". 
+
+With this, we are ready to perform processing our tokens into input ids and padding the ner tags:
+
+\begin{lstlisting}[language=Python, caption=Tokenise and align with Auto Tokeniser]
+def tokenize_and_align_labels(data_collection:DataCollection) -> BatchEncoding:
+    tokenized_inputs = tokenizer(data_collection.get_token_list(), truncation=True, is_split_into_words=True, max_length=512) # tokenise inputs
+
+    labels = [] # create empty labels list to later matchs with tokenised inputs
+
+    for i, label in enumerate(data_collection.ner_as_idx): # enumerate ner tags that we have converted to 
+        word_ids = tokenized_inputs.word_ids(batch_index=i)  # get word ids
+        previous_word_idx = None # previous word index to check if same
+        label_ids = [] # create current label ids list
+        for word_idx in word_ids:  # for each index
+            if word_idx is None:  # if index is none must be special token
+                label_ids.append(-100) # append -100
+            elif word_idx != previous_word_idx:  # Only label the first token of a given word.
+                label_ids.append(label[word_idx]) # if does not equal previous word idx, append the label
+            else:
+                label_ids.append(-100) # if it does, the word has split so we add -100 again
+            previous_word_idx = word_idx # set the current index as previous index for next check
+        labels.append(label_ids) # on all processed, add to labels list
+
+    tokenized_inputs["labels"] = labels # add to dictionary, will be input_ids, labels and attention mask
+    return tokenized_inputs
+
+def batch_list(batch:BatchEncoding):
+    return [{"input_ids": inputs, "labels": labels} for labels, inputs in zip(batch["labels"], batch["input_ids"])]
+
+\end{lstlisting}
+
+Because the DistilBERT model requires the inputs to be in a dictionary list, the batch list function helps return that. Now that we have tokenised all of our collections that we will test on, we will be able to generate a metric function to run when we are training our dataset. The metric function is important to progressively test our dataset and see how well it is doing as some models are capable of adjusting rates and values depending on progress.
+
+\begin{lstlisting}[language=Python, caption=Metric Function]
+from datasets import load_metric
+import evaluate
+seqeval = evaluate.load("seqeval")
+metric = load_metric("seqeval")
+
+def compute_metrics(p):
+    predictions, labels = p
+    predictions = np.argmax(predictions, axis=2)
+
+    true_predictions = [
+        [tag_list[p] for (p, l) in zip(prediction, label) if l != -100]
+        for prediction, label in zip(predictions, labels)
+    ]
+    true_labels = [
+        [tag_list[l] for (p, l) in zip(prediction, label) if l != -100]
+        for prediction, label in zip(predictions, labels)
+    ]
+
+    results = seqeval.compute(predictions=true_predictions, references=true_labels)
+    return {
+        "precision": results["overall_precision"],
+        "recall": results["overall_recall"],
+        "f1": results["overall_f1"],
+        "accuracy": results["overall_accuracy"],
+    }
+\end{lstlisting}
+
+The metric function uses the labels to check if something is to be ignored. If not, it uses the predictions and labels it gets and adds them to a general list where evaluations can be made. Finally, we load the model and the dataloader and train:
+
+\begin{lstlisting}[language=Python, caption=Train Distil BERT]
+from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer, DataCollatorForTokenClassification
+data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
+task = "ner" # Should be one of "ner", "pos" or "chunk"
+model_checkpoint = "distilbert-base-uncased"
+
+def get_training_args(
+        out_dir:str,
+        learning_rate:float=2e-5,
+        batch_size:int=16,
+        epochs:int=2,
+        weight_decay:float=0.01,
+        evaluation_strategy:str="epoch",
+        save_strategy:str="epoch",
+        lr_scheduler_type="linear") -> TrainingArguments:
+    return TrainingArguments(
+        output_dir=out_dir,
+        learning_rate=learning_rate,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=batch_size,
+        lr_scheduler_type=lr_scheduler_type,
+        num_train_epochs=epochs, # number of epochs to train, can be overriden by max steps
+        weight_decay=weight_decay, # The weight decay to apply (if not zero) to all layers except all bias and LayerNorm weights
+        evaluation_strategy=evaluation_strategy, # evaluate at the end of each epoch
+        save_strategy=save_strategy, # can save by epoch, steps or not at all
+        save_total_limit=1, # how many checkpoints to keep before overriding (set to 1, so latest checkpoint is only kept)!
+        load_best_model_at_end=True,
+        report_to=['none'], # REQUIRED because otherwise keeps asking to log into "wandb",
+        overwrite_output_dir=True,
+    )
+
+def get_trainer(model, training_args:TrainingArguments, tokenised_train:list[dict], tokenised_eval:list[dict]) -> Trainer:
+    return Trainer(
+        model=model, # model we use for training
+        args=training_args, # model arguments
+        train_dataset=tokenised_train, # train dataset tokenised
+        eval_dataset=tokenised_eval, # testing dataset tokenised for model training evaluation
+        tokenizer=tokenizer, # which tokeniser are we using
+        data_collator=data_collator, # data collector pads the tokens along with the labels
+        compute_metrics=compute_metrics, # function to compute metrics on how well we are scoring
+    )
+\end{lstlisting}
+
+When doing the predictions, we use the same method as with computing metrics to get the labels, then using ConfusionMatrixDisplay from sklearn, we plot the dataframes and display them.
+
+\subsubsection{spaCy}
+
+For spacy, we will need to setup the required libraries and paths first. Once that is complete, we will start to create a vocabulary. In order to do so, we have to load our train and test dataset into the "doc". This is spaCys way to index words and labels. We create spaces where the words are separated and then add both words and ner labels to the vocabulary:
+\begin{lstlisting}[language=Python, caption=spaCy DocBin]
+train_docbin:DocBin = DocBin()
+test_docbin:DocBin = DocBin()
+
+def dataset_to_vocab(collection:DataCollection, doc_bin:DocBin) -> dict:
+    for data_item in collection.collection:
+        spaces = [True if token not in string.punctuation else False for token in data_item.tokens] 
+        doc = Doc(nlp.vocab, words=data_item.tokens, spaces=spaces, ents=data_item.ner)
+        doc_bin.add(doc)
+
+dataset_to_vocab(train_collection, train_docbin)
+dataset_to_vocab(test_collection, test_docbin)
+
+train_docbin.to_disk(train_vocab_path)
+test_docbin.to_disk(dev_vocab_path)
+\end{lstlisting}
+
+With the docbin vocabulary built, we can train our model. SpaCy trains its epochs until the loss function begins to start to stop if the epochs are left at 0.
+\begin{lstlisting}[language=Python, caption=spaCy DocBin]
+if retrain_exp_3:
+    from spacy.cli.train import train
+    train(config_path=config_path, output_path=output_dir, overrides={"paths.train": train_vocab_path, "paths.dev": dev_vocab_path}, use_gpu=0)
+\end{lstlisting}
+
+Once the training is finished, we have to evaluate our model. The general issue here is that spacy, like the autotokeniser in BERT, likes to break words into more subsections. This means that our predicted labels and true labels will not match up. Furthermore, because spacy is a bit more clever, it will automatically combine our longform labels into a singular "LF" tag, but that does not make it easy for us to recognise prediction accuracy between B-LF and I-LF. However, because we know that I-LF follow B-LF, then we can re-split the predictions to match.
+
+To fix that we will have to pad the tokens with invalid tags if they are shorter and otherwise pad labels if they are longer. However, once we do it successfully, we can plot our results. \\
 
 
+\begin{tabular}{ |p{5cm}||p{5cm}| }
+    \hline
+    \multicolumn{2}{|c|}{Training Arguments} \\
+    \hline
+    Learning Rate & 2e-5  \\
+    \hline
+    Optimiser & Adam  \\
+    \hline
+\end{tabular} \\ \\
 
+\includegraphics[scale=0.5]{exp3_result}
 
+\begin{tabular}{ |p{6cm}||p{1.5cm}|p{1.5cm}| }
+    \hline
+    \multicolumn{3}{|c|}{Experiment 1 Results} \\
+    \hline
+    Test & F1 Score & Time \\
+    \hline
+    DistilBERT & 82\% & 211.15s \\
+    \hline
+    spaCy & 81\% & 2012.53s  \\
+    \hline
+\end{tabular} \\ \\
 
+Both models perform almost indentically well - spaCy manages to be slightly better at longform start, while DistilBERT manages to find abreviations and longform inner parts better. However, both reach a f1 score of over 80\% and have little difference between them in terms of scores.
 
+\newpage
 
+\subsection{Experiment 4 - Hyper Parameters}
 
+In this section we are finally exploring different parameters and how they affect our training and testing, as well as what the results of each of these tests will be.
 
+The 6 final tests with the hyper parameters will be as following:
+\begin{enumerate}
+  \item Learning Rate
+  \item Learning Rate Scheduler - Cosine
+  \item Learning Rate Scheduler - Polynomial
+  \item Batch Size
+  \item Weight Decay
+  \item Epochs
+\end{enumerate}
 
+As we are using the DistilBERT model to hyper parameterise we can rerun our pipeline setup before and change arguments as we go. The results of the testing are as follows:
 
+\includegraphics[scale=0.5]{exp4_result}
 
+\begin{tabular}{ |p{6cm}||p{1.5cm}|p{1.5cm}| }
+    \hline
+    \multicolumn{3}{|c|}{Experiment 1 Results} \\
+    \hline
+    Test & F1 Score & Time \\
+    \hline
+    Learning Rate & 0\% & 81.86s \\
+    \hline
+    Scheduler - Cosine & 82\% & 81.87s  \\
+    \hline
+    Scheduler - Polynomial & 82\% & 83.05s  \\
+    \hline
+    Batch Size & 81\% & 96.54s  \\
+    \hline
+    Weight Decay & 82\% & 83.81s  \\
+    \hline
+    Epochs & 82\% & 217.30s  \\
+    \hline
+\end{tabular} \\ \\
 
+Most of the results are as expected, the only exception being the learning rate, as the original hypothesis would have been that too large or a learning rate would decrease the score, but it has made the model completely unable to learn. However, on further query, this does make sense as it is most likely only able to learn the largest imbalance in the dataset, which is B-O. This further proves that the dataset imbalance makes it difficult for the model to learn.
 
-\subsection{Experiment 3 - Hyper Parameters}
-DistilBert FineTuning
-
-
-
-
-
-
-
-
-\subsection{Experiment 4 - Pre-Trained Models}
-
-Spacy vs DistilBert
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\subsubsection{Method}
-Experimentation with four different experimental setups, where you might be trying out
-different options such as (listing more than four different experiments here, so choose four).
-Your PDF report should have a subheading for each of the 4 experiments, numbered 2.1, 2.2,
-2.3, and 2.4.
-\subsubsection{Analysis}
-Analyse testing for each of the four experiment variations conducted above (this refers to
-accuracy testing, not software testing) – show visuals, such as confusion matrix or other
-relevant metrics for each experiment. Use F1-score as primary evaluation metric. Perform an
-error analysis on the predictions obtained. Your PDF report should have a subheading for
-each of the 4 experiment variations, numbered 3.1, 3.2, 3.3, and 3.4. (20 marks, 5 marks per
-variation)
-
-
-
-
-
-
-
-
-
-
-
+\newpage
 
 \section{Conclusion}
 \subsection{Experiment Result}
@@ -538,24 +1018,39 @@ Discuss best and worst results from the testing, on all the experiments you cond
 mention if there was any need to adjust any variables and re-run the experiment (8 marks, 2
 mark per variation)
 
+In experiment 1, the best performing data results were the original tokens and lemmatisation, both reaching 82\% f1 scores, while the worst was creating unique words with stopwords and punctuations removed getting only close to 60\%. This makes sense however, as making all the words unique removes too much context around the words, while having more data, means that pre-trained models are more capable of using that data. \\
 
+Experiment 2 holds overall the worst result, as the CNN model only reachs a maximum of 6\% f1 score. It proves that an untrained model is not able to perform well on an unbalanced dataset. As mentioned above, there are a multitude of things that could be further attempted - balancing the dataset, windowing and one-hot encoding to avoid negative padding issues.
+Between the tests themselves however, the best result seemed to be word2vec skip-gram, most likely due to the ability of being able to look around the words when constructing the vectors. \\
 
+Experiment 3 produced overall some of the best results as both DistilBERT spaCy, both came above 80\% f1 score. Both of them outperform other models simply due to the fact, that they have already been built to capture the semantics of sentences before fine tuning it to the dataset. Thus, it does not need to start from scratch, unlike the CNN model.
 
+While the DistilBERT model itself is slightly better, given more time to train, potentially spaCy could surpass that. Where DistilBERT does excel however, is time. It takes far less time to train the model than with spaCy and both of them achieve relatively similar results. Not only this, but they are far easier to configure and run than building from scratch and achieve much greater results.
 
+Because of this, both of them are good candidates for named entity recognition. \\
 
-
-
-
-
+In experiment 4, almost all the experiments reached a score over 80\%. The only exception to this was changing the learning rate to 2e-3 from 2e-5 which make the model only able to recognise everything as a B-O label, being unable to recognise anything. This makes also sense as the learning rate controls how ambitious the model is in changing its weights. Having too high a learning rate would cause it to be unable to predict anything, as has happened here.
 
 \subsection{Outcome}
-Evaluate the overall attempt and outcome – this goes beyond the accuracy of the models, so
-some important questions to consider here are:
-a. “Can the models you built fulfil their purpose?”
-b. “What is good enough F1/accuracy?”
-c. If any of the models did not perform well, what is needed to improve?
-d. If any of the models performed really well, could/would you make it more efficient
-and sacrifice some quality?
 
+\subsubsection{Can the models you built fulfil their purpose?}
+The overall experiments achieved the tasks that they were set out to do. Testing with data processing, the outcome of the results was mostly as anticipated - more data, even if imbalanced, is better for models that have already learned how to recognise and train on semantics of sentences, while the data being unbalanced causes issues with untrained models.
+
+\subsubsection{What is good enough F1/accuracy?}
+The highest achieved result was 82\%, which was achieved by the DistilBERT model. This is pretty good accuracy, which seems to be able to handle most cases and predict with a degree of confidence a correct label. Obviously a dataset that is unbalanced towards a B-O class and predicting only one label, could achieve a relatively high accuracy by just predicting one label. However, I would say anything above 75\% is a good result.
+
+
+\subsubsection{If any of the models did not perform well, what is needed to improve?}
+
+Definitely the issue here lies in the imbalanced data, which could be easily remedied by having more samples of the abbreviation and long-form tags. However, semantics of a sentence might be difficult to construct as such.
+
+For the CNN model that did not perform well at all, the further tests should include trying to balance the dataset, building one hot encoding into the labels and trying to play around with different vector sizes and potentially trying windowing. All of these might give more context to the model to learn from.
+
+\subsubsection{If any of the models performed really well, could/would you make it more efficient
+and sacrifice some quality?}
+
+As the DistilBERT model performed well with the un-cased model, it would be interesting to see if a larger model or even just BERT could out perform it in terms of accuracy. However, we also need to account for speed of the model, as being slightly more accurate is not worth a massive time increase cost.
+
+Another interesting test could be to hyper parameterise the spaCy model to see if that would yield better results than DistilBERT.
 
 \end{document}
