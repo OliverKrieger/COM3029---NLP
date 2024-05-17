@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='/styles/index.css') }}">
     </head>
     <body>
+        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
         <h1>Named Entity Recognition Tool</h1>
         <h2>For abbreviation and long form recognition</h2>
@@ -40,13 +41,22 @@
         <div class="tab-content-container">
             <div class="tab-content" id="text-input" style="display: block;">
                 <h3>Input Text</h3>
-                <textarea id="input_text"></textarea>
-                <button onclick="generateTagsText(event, 'input_text')">Generate Tags</button>
+                
+                <!-- <button onclick="generateTagsText(event, 'input_text')">Generate Tags</button> -->
+                <form hx-post="/get_tags" hx-swap="outerHTML">
+                    <select name="ai_models" id="ai_models">
+                        <option value="spaCy">spaCy</option>
+                        <option value="DistilBERT">DistilBERT</option>
+                    </select>
+                    <textarea id="input_text" name="input_text"></textarea>
+                    <button>Press me</button>
+                </form>
+                
             </div>
             <div class="tab-content" id="pdf-input" style="display: none;">
                 <h3>Input PDF</h3>
                 <input type="file" id="pdf-input-field" name="pdf-input-field" accept="application/pdf" />
-                <button onclick="generateTagsFile()">Generate Tags</button>
+                <button onclick="generateTagsFile(event, 'pdf-input-field')">Generate Tags</button>
             </div>
             
         </div>
@@ -60,11 +70,13 @@
 
         <script>
             function generateTagsText(event, elem_id) {
-                text_elem = document.getElementById(elem_id);
-                console.log(text_elem.value)
+                let text_elem = document.getElementById(elem_id);
+                let text_value = text_elem.value
             }
 
-            function generateTagsFile() {
+            function generateTagsFile(event, elem_id) {
+                let text_elem = document.getElementById(elem_id);
+                console.log(text_elem.value)
             }
 
             function openTab(evt, tabName) {
