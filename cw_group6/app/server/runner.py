@@ -14,5 +14,9 @@ def show():
 
 @simple_page.post('/get_tags')
 def get_tags():
-    response = run_model(request.form.get('ai_models'), request.form.get('input_text'))
-    return str(response)
+    try:
+        response = run_model(request.form.get('ai_models'), request.form.get('input_text'))
+        print("RESPONSE: ", response)
+        return render_template("results.html", tokens=response)
+    except TemplateNotFound:
+        abort(404)
