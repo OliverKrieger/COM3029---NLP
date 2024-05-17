@@ -38,13 +38,15 @@
             <button class="tab-links" onclick="openTab(event, 'pdf-input')">PDF Input</button>
         </div>
         <div class="tab-content-container">
-            <div class="tab-content" id="text-input">
+            <div class="tab-content" id="text-input" style="display: block;">
                 <h3>Input Text</h3>
                 <textarea id="input_text"></textarea>
+                <button onclick="generateTagsText(event, 'input_text')">Generate Tags</button>
             </div>
-            <div class="tab-content" id="pdf-input">
+            <div class="tab-content" id="pdf-input" style="display: none;">
                 <h3>Input PDF</h3>
                 <input type="file" id="pdf-input-field" name="pdf-input-field" accept="application/pdf" />
+                <button onclick="generateTagsFile()">Generate Tags</button>
             </div>
             
         </div>
@@ -54,11 +56,17 @@
         </div>
         
 
-        <button onclick="generateTags()">Generate Tags</button>
+        
 
         <script>
-            function generateTags() {
+            function generateTagsText(event, elem_id) {
+                text_elem = document.getElementById(elem_id);
+                console.log(text_elem.value)
             }
+
+            function generateTagsFile() {
+            }
+
             function openTab(evt, tabName) {
                 var i, tabcontent, tablinks;
                 tabcontent = document.getElementsByClassName("tab-content");
