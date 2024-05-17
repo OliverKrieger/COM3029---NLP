@@ -22,3 +22,6 @@
 /cw/report/spacy_vocab/*
 
 /cw/bert/bert/*
+
+cw_group6/diagrams/*.excalidraw
+cw_group6/tasks/readme.md
