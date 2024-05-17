@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Named Entity Recognition Tool</title>
+    </head>
+    <body>
+
+        <h1>Named Entity Recognition Tool</h1>
+        <h2>For abbreviation and long form recognition</h2>
+
+        <div class="introduction">
+            <div class="intro_input">
+                <p>Enter the input for the model in the form of a single word, a sentence or a text document</p>
+            </div>
+            <div class="intro_model">
+                <p>Select a model to use for named entity recognition and use generate to perform it</p>
+            </div>
+            <div class="intro_output">
+                <p>Outputs the words with recognised tags for abbreviations and long forms</p>
+            </div>
+        </div>
+
+        <p>Paste text into the text area </p>
+
+        <div class="model_selection">
+            <label for="ai_models">Select a model to recognise with</label>
+
+            <select name="ai_models" id="ai_models">
+                <option value="spaCy">spaCy</option>
+                <option value="DistilBERT">DistilBERT</option>
+            </select>
+        </div>
+        
+
+        <div class="tabs">
+            <span>Tab 1</span>
+        </div>
+        <div class="tab-content">
+            <h3>Input Text</h3>
+            <textarea></textarea>
+        </div>
+        
+
+        <button onclick="generateTags()">Generate Tags</button>
+
+        <script>
+            function generateTags() {
+            }
+        </script>
+
+    </body>
+</html>

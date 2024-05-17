@@ -25,3 +25,5 @@
 
 cw_group6/diagrams/*.excalidraw
 cw_group6/tasks/readme.md
+cw_group6/app/models/spacy/model-best
+*__pycache__
