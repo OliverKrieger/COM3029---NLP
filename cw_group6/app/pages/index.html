@@ -6,49 +6,45 @@
     </head>
     <body>
         <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-
-        <h1>Named Entity Recognition Tool</h1>
-        <h2>For abbreviation and long form recognition</h2>
+        
+        <div class="title-headings">
+            <h1>Named Entity Recognition Tool</h1>
+            <h2>For abbreviation and long form recognition</h2>
+        </div>
 
         <div class="introduction">
-            <div class="intro_input">
-                <p>Enter the input for the model in the form of a single word, a sentence or a text document</p>
+            <div class="intro_container intro_input">
+                <p>1. Enter the input for the model in the form of a single word, a sentence or a text document</p>
             </div>
-            <div class="intro_model">
-                <p>Select a model to use for named entity recognition and use generate to perform it</p>
+            <div class="intro_container intro_model">
+                <p>2. Select a model to use for named entity recognition and use generate to perform it</p>
             </div>
-            <div class="intro_output">
-                <p>Outputs the words with recognised tags for abbreviations and long forms</p>
+            <div class="intro_container intro_output">
+                <p>3. Outputs the words with recognised tags for abbreviations and long forms</p>
             </div>
         </div>
 
-        <p>Paste text into the text area </p>
-
-        <div class="model_selection">
-            <label for="ai_models">Select a model to recognise with</label>
-
-            <select name="ai_models" id="ai_models">
-                <option value="spaCy">spaCy</option>
-                <option value="DistilBERT">DistilBERT</option>
-            </select>
-        </div>
-        
-
-        <div class="tabs">
+        <!-- <div class="tabs">
             <button class="tab-links" onclick="openTab(event, 'text-input')">Text Input</button>
-        </div>
+        </div> -->
         <div class="tab-content-container">
             <div class="tab-content" id="text-input" style="display: block;">
                 <h3>Input Text</h3>
                 
-                <!-- <button onclick="generateTagsText(event, 'input_text')">Generate Tags</button> -->
-                <form hx-post="/get_tags" hx-target="#results" hx-swap="outerHTML">
-                    <select name="ai_models" id="ai_models">
-                        <option value="spaCy">spaCy</option>
-                        <option value="DistilBERT">DistilBERT</option>
-                    </select>
-                    <textarea id="input_text" name="input_text"></textarea>
-                    <button>Press me</button>
+                <form class="input_form" hx-post="/get_tags" hx-target="#results" hx-swap="outerHTML">
+                    <div class="model_select">
+                        <label for="ai_models">Choose a model for entity recognition:</label>
+                        <select name="ai_models" id="ai_models">
+                            <option value="spaCy">spaCy</option>
+                            <option value="DistilBERT">DistilBERT</option>
+                        </select>
+                    </div>
+                    <div>
+                        <textarea id="input_text" name="input_text" rows="5"></textarea>
+                    </div>
+                    <div>
+                        <button class="btn">Generate Text</button>
+                    </div>
                 </form>
                 
             </div>
@@ -58,16 +54,6 @@
         </div>
 
         <script>
-            function generateTagsText(event, elem_id) {
-                let text_elem = document.getElementById(elem_id);
-                let text_value = text_elem.value
-            }
-
-            function generateTagsFile(event, elem_id) {
-                let text_elem = document.getElementById(elem_id);
-                console.log(text_elem.value)
-            }
-
             function openTab(evt, tabName) {
                 var i, tabcontent, tablinks;
                 tabcontent = document.getElementsByClassName("tab-content");
