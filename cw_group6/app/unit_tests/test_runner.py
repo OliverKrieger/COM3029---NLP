@@ -52,9 +52,14 @@ def test_invalid_array_input():
 def test_invalid_JSON_input():
     print()
 
-def run_tests():
-    test_input()
-    test_long_input()
-    test_no_input()
+def run_tests() -> bool:
+    try:
+        test_input()
+        test_long_input()
+        test_no_input()
 
-    print("SUCCESS - All tests passed successfully!")
+        print("SUCCESS - All tests passed successfully!")
+        return True
+    except Exception:
+        print(traceback.format_exc())
+        return False

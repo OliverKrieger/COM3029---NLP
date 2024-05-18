@@ -2,5 +2,5 @@ import subprocess
 from unit_tests.test_runner import run_tests
 
 if __name__ == "__main__":
-    run_tests()
-    # subprocess.Popen(["yarn", "--cwd", "../visualiser/", "start"], shell=True)
+    if run_tests():
+        subprocess.Popen(["python", "-m", "flask", "--app", "main", "run", "--debug"], shell=True)
