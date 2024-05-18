@@ -8,8 +8,5 @@ from transformers import pipeline
 
 classifier = pipeline("ner", model=distilBERT_model)
 
-
 def distilBERT_recognise_entities(input:str):
-    print("OUTPUT:", classifier(input))
-
     return [(ent["word"], ent["entity"]) for ent in classifier(input)]
