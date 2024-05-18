@@ -10,4 +10,4 @@ RUN python -m spacy download en_core_web_sm
 ADD . .
 RUN python test_runner.py
 
-CMD ["bash", "start.bat"]
+CMD ["bash", "docker_start.bat"]

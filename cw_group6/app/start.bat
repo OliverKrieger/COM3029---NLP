@@ -1,1 +1,1 @@
-python -m flask --app main run --debug --host 0.0.0.0
+python -m flask --app main run --debug
