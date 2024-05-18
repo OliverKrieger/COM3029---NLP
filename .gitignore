@@ -27,4 +27,5 @@ cw_group6/diagrams/*.excalidraw
 cw_group6/tasks/readme.md
 cw_group6/app/models/spacy/model-best
 cw_group6/app/models/distilBERT/model-best
+cw_group6/app/metrics/logs/log_file.log
 *__pycache__
