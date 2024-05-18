@@ -3,6 +3,7 @@
     <head>
         <title>Named Entity Recognition Tool</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='/styles/index.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='/styles/selectbox.css') }}">
     </head>
     <body>
         <script src="https://unpkg.com/htmx.org@1.9.12"></script>
@@ -34,7 +35,7 @@
                 <form class="input_form" hx-post="/get_tags" hx-target="#results" hx-swap="outerHTML">
                     <div class="model_select">
                         <label for="ai_models">Choose a model for entity recognition:</label>
-                        <select name="ai_models" id="ai_models">
+                        <select name="ai_models" id="ai_models" class="classic">
                             <option value="spaCy">spaCy</option>
                             <option value="DistilBERT">DistilBERT</option>
                         </select>
