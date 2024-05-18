@@ -10,3 +10,5 @@ distilBERT_path = os.path.join(models_path, "distilBERT")
 distilBERT_model = os.path.join(distilBERT_path, "model-best")
 
 logs_path = os.path.join(working_dir, "metrics", "logs")
+
+unit_test_path = os.path.join(working_dir, "unit_tests")

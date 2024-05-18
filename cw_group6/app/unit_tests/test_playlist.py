@@ -1,4 +1,6 @@
 import traceback
+
+from .request_test import make_requests
 from entity_recogniser.recogniser import run_model
 
 def test_input():
@@ -38,25 +40,25 @@ def test_no_input():
         print(traceback.format_exc())
         raise Exception("ERROR (test_no_input) - test failed for non assertation reasons!")
 
-def test_array_input():
-    print()
+def test_run_request_one_second_spacy():
+    try:
+        make_requests(1, "spaCy", "OBS is an abbreviation", "make_requests_fig_1s_spacy")
+    except Exception:
+        print(traceback.format_exc())
 
-def test_JSON_input():
-    # has to have tokens fields
-    # ner tags fields
-    print()
-
-def test_invalid_array_input():
-    print()
-
-def test_invalid_JSON_input():
-    print()
+def test_run_request_ten_second_spacy():
+    try:
+        make_requests(10, "spaCy", "OBS is an abbreviation", "make_requests_fig_10s_spacy")
+    except Exception:
+        print(traceback.format_exc())
 
 def run_tests() -> bool:
     try:
         test_input()
         test_long_input()
         test_no_input()
+        test_run_request_one_second_spacy()
+        test_run_request_ten_second_spacy()
 
         print("SUCCESS - All tests passed successfully!")
         return True

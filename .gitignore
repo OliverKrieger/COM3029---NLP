@@ -28,4 +28,5 @@ cw_group6/tasks/readme.md
 cw_group6/app/models/spacy/model-best
 cw_group6/app/models/distilBERT/model-best
 cw_group6/app/metrics/logs/log_file.log
+cw_group6/app/unit_tests/figs/*
 *__pycache__
