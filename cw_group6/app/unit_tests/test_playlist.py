@@ -40,15 +40,17 @@ def test_no_input():
         print(traceback.format_exc())
         raise Exception("ERROR (test_no_input) - test failed for non assertation reasons!")
 
-def test_run_request_one_second_spacy():
+def test_run_request_one_second():
     try:
         make_requests(1, "spaCy", "OBS is an abbreviation", "make_requests_fig_1s_spacy")
+        make_requests(1, "DistilBERT", "OBS is an abbreviation", "make_requests_fig_1s_DistilBERT")
     except Exception:
         print(traceback.format_exc())
 
-def test_run_request_ten_second_spacy():
+def test_run_request_ten_second():
     try:
         make_requests(10, "spaCy", "OBS is an abbreviation", "make_requests_fig_10s_spacy")
+        make_requests(10, "DistilBERT", "OBS is an abbreviation", "make_requests_fig_10s_DistilBERT")
     except Exception:
         print(traceback.format_exc())
 
@@ -57,8 +59,8 @@ def run_tests() -> bool:
         test_input()
         test_long_input()
         test_no_input()
-        test_run_request_one_second_spacy()
-        test_run_request_ten_second_spacy()
+        test_run_request_one_second()
+        test_run_request_ten_second()
 
         print("SUCCESS - All tests passed successfully!")
         return True
