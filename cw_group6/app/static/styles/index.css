@@ -1,3 +1,10 @@
+/* Colour scheme */
+/* Raisin Black #1A1423 */
+/* Dark Purple #372549 */
+/* Eggplant #774C60 */
+/* Redwood #B75D69 */
+/* Pale Dogwood #EACDC2 */
+
 body{
     font-family: Arial, Helvetica, sans-serif;
     background-color: #1A1423;
@@ -56,3 +63,36 @@ body{
         min-width: 400px;
     }
 }
+
+#results{
+    max-width: 960px;
+    margin: 10px auto;
+    .label-tag{
+        background: #372549;
+        padding: 5px;
+        line-height: 2.2;
+        border-radius: 5%;
+        .tag-O, .tag-B-O{
+            background: #4B5267;
+            padding: 5px;
+            font-weight: bold;
+        }
+        .tag-AC, .tag-B-AC{
+            background: #8661C1;
+            padding: 5px;
+            font-weight: bold;
+        }
+        .tag-LF, .tag-B-LF{
+            background: #A28F9D;
+            padding: 5px;
+            font-weight: bold;
+        }
+        .tag-I-LF{
+            background: #BE97C6;
+            padding: 5px;
+            font-weight: bold;
+        }
+    }    
+}
+
+
