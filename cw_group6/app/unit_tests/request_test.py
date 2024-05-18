@@ -16,6 +16,9 @@ def make_requests(time_in_seconds, model_type, input, graph_name:str="make_reque
     print(f"MR - number of requests made {number_of_requests} over time {time_in_seconds}s for model {model_type}")
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot([rt[0] for rt in request_times], [rt[1] for rt in request_times])
+    ax.set_title(f"Make Requests for {time_in_seconds} {model_type}")
+    plt.xlabel("Number of Requests")
+    plt.ylabel("Time")
     plt.savefig(os.path.join(unit_test_path, "figs", (graph_name+'.png')))
     
 def request_over_time(nor, model_type, input, graph_name:str="requests_over_time"):
@@ -29,5 +32,8 @@ def request_over_time(nor, model_type, input, graph_name:str="requests_over_time
     print(f"ROT - number of requests made {number_of_requests} over time {time.time()-start_time}s for model {model_type}")
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot([rt[0] for rt in request_times], [rt[1] for rt in request_times])
+    ax.set_title(f"{nor} Requests over Time {model_type}")
+    plt.xlabel("Number of Requests")
+    plt.ylabel("Time")
     plt.savefig(os.path.join(unit_test_path, "figs", (graph_name+'.png')))
     

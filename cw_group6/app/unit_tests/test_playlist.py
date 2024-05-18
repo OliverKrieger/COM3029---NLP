@@ -66,8 +66,8 @@ def run_tests() -> bool:
         test_input()
         test_long_input()
         test_no_input()
-        # test_run_request_one_second()
-        # test_run_request_ten_second()
+        test_run_request_one_second()
+        test_run_request_ten_second()
         test_run_200_requests()
 
         print("SUCCESS - All tests passed successfully!")
