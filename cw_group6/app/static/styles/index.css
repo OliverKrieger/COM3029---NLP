@@ -60,7 +60,12 @@ body{
     display: flex;
     flex-direction: column;
     textarea {
-        min-width: 400px;
+        width: 100%;
+        max-width: 960px;
+        background: none;
+        border: 2px solid beige;
+        border-radius: 5px;
+        color: beige;
     }
 }
 
