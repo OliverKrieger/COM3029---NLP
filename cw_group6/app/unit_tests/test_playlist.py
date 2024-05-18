@@ -1,6 +1,6 @@
 import traceback
 
-from .request_test import make_requests
+from .request_test import make_requests, request_over_time
 from entity_recogniser.recogniser import run_model
 
 def test_input():
@@ -54,13 +54,21 @@ def test_run_request_ten_second():
     except Exception:
         print(traceback.format_exc())
 
+def test_run_200_requests():
+    try:
+        request_over_time(200, "spaCy", "OBS is an abbreviation", "requests_over_time_200_spacy")
+        request_over_time(200, "DistilBERT", "OBS is an abbreviation", "requests_over_time_200_DistilBERT")
+    except Exception:
+        print(traceback.format_exc())
+
 def run_tests() -> bool:
     try:
         test_input()
         test_long_input()
         test_no_input()
-        test_run_request_one_second()
-        test_run_request_ten_second()
+        # test_run_request_one_second()
+        # test_run_request_ten_second()
+        test_run_200_requests()
 
         print("SUCCESS - All tests passed successfully!")
         return True
