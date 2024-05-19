@@ -1,10 +1,11 @@
 <div id="admin-content-panel" class="performance-results">
-    {% for (img_name, path, number_of_requests, time_taken, model_type) in performance_data %}
+    {% for (img_name, path, number_of_requests, time_taken, model_type, input) in performance_data %}
         <div class="performance-metric">
             <h3>{{img_name}}</h3>
             <div class="image-container">
                 <img src="{{path}}" />
             </div>
+            <div>Used Input: {{input}}</div>
             <div>Number of Requests made: {{number_of_requests}}</div>
             <div>Time Taken: {{time_taken}}</div>
             <div>Model Used: {{model_type}}</div>
