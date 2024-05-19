@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, abort, request
 from jinja2 import TemplateNotFound
 from entity_recogniser.recogniser import run_model
 from metrics.log_metrics import log_metric, get_log_metrics
+from metrics.model_performance import evaluate_model_performance
 import traceback
 
 simple_page = Blueprint('simple_page', __name__,
@@ -47,8 +48,24 @@ def admin():
 def admin_login():
     try:
         if request.form.get('username') == "admin" and request.form.get('password') == "nerproject":
-            return render_template("admin_panel.html", data=get_log_metrics())
+            return render_template("admin_panel.html", login_token="869ec48ioh8fkyad")
         else:
             return render_template("401.html")
+    except TemplateNotFound:
+        abort(404)
+
+@simple_page.post('/logs')
+def admin_logs():
+    try:
+        if request.form.get('login_token') == "869ec48ioh8fkyad":
+            return render_template("logs_panel.html", log_data=get_log_metrics())
+    except TemplateNotFound:
+        abort(404)
+
+@simple_page.post('/performance')
+def admin_performance():
+    try:
+        if request.form.get('login_token') == "869ec48ioh8fkyad":
+            return render_template("performance_panel.html", performance_data=evaluate_model_performance())
     except TemplateNotFound:
         abort(404)

@@ -1,0 +1,11 @@
+<div id="admin-content-panel" class="performance-panel">
+    <h1>Performance</h1>
+    {% for (img_name, path) in imgs %}
+    <tr>
+        <td>{{time}}</td>
+        <td>{{model_type}}</td>
+        <td>{{input}}</td>
+        <td>{{predictions}}</td>
+    </tr>
+    {% endfor %}            
+</div>

@@ -1,19 +1,28 @@
 <div class="admin-panel">
-    <h1>Logs</h1>
-    <table class="table-style">
-        <tr>
-            <th>Time</th>
-            <th>Model</th>
-            <th>Input</th>
-            <th>Prediction</th>
-        </tr>
-        {% for (input, predictions, model_type, time) in data %}
-        <tr>
-            <td>{{time}}</td>
-            <td>{{model_type}}</td>
-            <td>{{input}}</td>
-            <td>{{predictions}}</td>
-        </tr>
-        {% endfor %}            
-    </table>
+    <h1>Admin Panel</h1>
+    <div class="tabs">
+        <form hx-post="/logs" hx-target="#admin-content-panel" hx-swap="outerHTML">
+            <input type="hidden" name="login_token" value="{{login_token}}" required/>
+            <button class="btn tab-links" onclick="setActiveTab(event)">Logs</button>
+        </form>
+        <form hx-post="/performance" hx-target="#admin-content-panel" hx-swap="outerHTML">
+            <input type="hidden" name="login_token" value="{{login_token}}" required/>
+            <button class="btn tab-links" onclick="setActiveTab(event)">Performance</button>
+        </form>
+    </div>
+    <div id="admin-content-panel">
+
+    </div>
+
+    <script>
+        function setActiveTab(evt) {
+            console.log("EVENT")
+            let tablinks;
+            tablinks = document.getElementsByClassName("tab-links");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            evt.currentTarget.className += " active";
+        }
+    </script>
 </div>
