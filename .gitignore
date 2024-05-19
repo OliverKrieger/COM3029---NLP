@@ -30,6 +30,6 @@ cw_group6/app/models/distilBERT/model-best
 cw_group6/app/metrics/logs/log_file.log
 cw_group6/app/unit_tests/figs/*
 cw_group6/app/static/figs/performance
-cw_group6/app/models/training_notebooks/BERT/checkpoints
-cw_group6/app/models/training_notebooks/Spacy/output
+cw_group6/app/models/training_notebooks/BERT/checkpoints/*
+cw_group6/app/models/training_notebooks/Spacy/output/*
 *__pycache__

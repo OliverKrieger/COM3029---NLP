@@ -22,3 +22,10 @@ Within the `app` folder
 
 build `docker build -t nerapp .`
 run server `docker run --rm -it -p 5000:5000 nerapp`
+
+## Models
+
+If you want to download mdels and add them to be able to perform NER, they can be downloaded from:
+https://drive.google.com/drive/folders/1T8Poqpivpp8CZxBIPz6qwBdfxQmIeDwL?usp=sharing
+
+If you want to train them yourself, go to app/models/training_notebooks and follow the notebook instructions
