@@ -9,7 +9,7 @@ def test_log_file(fpath) -> bool:
 def log_metric(info:dict):
     logfile_path = os.path.join(logs_path, "log_file.log")
     info["time"] = str(datetime.now())
-    with open(logfile_path, "a+") as f:
+    with open(logfile_path, "a+", encoding="cp1252") as f:
         log_line = str(info)+"\n"
         f.write(log_line)
         f.close()
@@ -17,7 +17,7 @@ def log_metric(info:dict):
 def get_log_metrics() -> list[tuple]:
     logs = []
     logfile_path = os.path.join(logs_path, "log_file.log")
-    f = open(logfile_path, 'r')
+    f = open(logfile_path, 'r', encoding="cp1252")
     lines = f.readlines()
     for line in lines:
         line_dict = eval(line)
