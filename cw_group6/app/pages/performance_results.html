@@ -5,10 +5,28 @@
             <div class="image-container">
                 <img src="{{path}}" />
             </div>
-            <div>Used Input: {{input}}</div>
+            <table class="table-style">
+                <tr>
+                    <td>Used Input:</td>
+                    <td>{{input}}</td>
+                </tr>
+                <tr>
+                    <td>Number of Requests made:</td>
+                    <td>{{number_of_requests}}</td>
+                </tr>
+                <tr>
+                    <td>Time Taken:</td>
+                    <td>{{time_taken}}</td>
+                </tr>
+                <tr>
+                    <td>Model Used:</td>
+                    <td>{{model_type}}</td>
+                </tr>
+            </table>
+            <!-- <div>Used Input: {{input}}</div>
             <div>Number of Requests made: {{number_of_requests}}</div>
             <div>Time Taken: {{time_taken}}</div>
-            <div>Model Used: {{model_type}}</div>
+            <div>Model Used: {{model_type}}</div> -->
         </div>        
     {% endfor %}            
 </div>
