@@ -135,7 +135,13 @@ body{
             width: -webkit-fill-available;
             text-align: center;
             padding: 3%;
+            background: #EACDC2;
+            border: 1px solid #B75D69;
+            outline: none;
         }
+    }
+    select{
+        width: 100%;
     }
 }
 
@@ -150,5 +156,18 @@ body{
     tr:nth-child(even){
         background: #A28F9D;
         color: aliceblue;
+    }
+}
+
+.performance-results{
+    display: flex;
+    .performance-metric{
+        width: 50%;
+        overflow: hidden;
+        padding: 20px;
+        text-align: center;
+        img{
+            width: 100%;
+        }
     }
 }

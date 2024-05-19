@@ -1,0 +1,10 @@
+<div id="admin-content-panel" class="performance-results">
+    {% for (img_name, path) in performance_data %}
+        <div class="performance-metric">
+            <h3>{{img_name}}</h3>
+            <div class="image-container">
+                <img src="{{path}}" />
+            </div>
+        </div>        
+    {% endfor %}            
+</div>

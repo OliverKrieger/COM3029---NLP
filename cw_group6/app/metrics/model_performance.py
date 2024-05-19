@@ -19,7 +19,9 @@ def time_to_requests(time_in_seconds, model_type, input, graph_name:str="time_to
     ax.set_title(f"Make Requests for {time_in_seconds} {model_type}")
     plt.xlabel("Number of Requests")
     plt.ylabel("Time")
-    plt.savefig(os.path.join(static_figs_performance_path, (graph_name+'.png')))
+    fig_path = os.path.join(static_figs_performance_path, (graph_name+'.png'))
+    plt.savefig(fig_path)
+    return "./static/figs/performance/"+(graph_name+".png")
     
 def request_over_time(nor, model_type, input, graph_name:str="requests_over_time"):
     start_time = time.time()
@@ -35,7 +37,12 @@ def request_over_time(nor, model_type, input, graph_name:str="requests_over_time
     ax.set_title(f"{nor} Requests over Time {model_type}")
     plt.xlabel("Number of Requests")
     plt.ylabel("Time")
-    plt.savefig(os.path.join(static_figs_performance_path, (graph_name+'.png')))
+    fig_path = os.path.join(static_figs_performance_path, (graph_name+'.png'))
+    plt.savefig(fig_path)
+    return "./static/figs/performance/"+(graph_name+".png")
 
-def evaluate_model_performance():
-    return [("image name", "some image path")]
+def evaluate_model_performance(model_type:str, input:str, time_for_requests:int, n_of_requests:int):
+    imgs:list[tuple[str, str]] = []
+    imgs.append(("time request", time_to_requests(int(time_for_requests), str(model_type), str(input), "time_for_requests")))
+    imgs.append(("time request", request_over_time(int(n_of_requests), str(model_type), str(input), "time_for_requests")))
+    return imgs

@@ -66,6 +66,15 @@ def admin_logs():
 def admin_performance():
     try:
         if request.form.get('login_token') == "869ec48ioh8fkyad":
-            return render_template("performance_panel.html", performance_data=evaluate_model_performance())
+            return render_template("performance_panel.html")
+    except TemplateNotFound:
+        abort(404)
+
+@simple_page.post('/performance-results')
+def admin_performance_results():
+    try:
+        response = evaluate_model_performance(request.form.get('ai_models'), request.form.get('text_input'), request.form.get('time_for_requests'), request.form.get('number_of_requests'))
+        print("RESPONSE:", response)
+        return render_template("performance_results.html", performance_data=response)
     except TemplateNotFound:
         abort(404)
