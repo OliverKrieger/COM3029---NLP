@@ -100,4 +100,47 @@ body{
     }    
 }
 
+.center-container{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 360px;
+    padding: 2%;
+    background: #EACDC2;
+    text-align: center;
+    h1{
+        color: #B75D69;
+        text-transform: uppercase;
+        text-decoration: underline;
+    }
+    .form-field{
+        margin: 5px 0;
+        .btn{
+            width: 100%;
+            padding: 4%;
+        }
+    }
+    .form-input{
+        input{
+            width: -webkit-fill-available;
+            text-align: center;
+            padding: 3%;
+        }
+    }
+}
 
+.table-style{
+    th{
+        text-align: left;
+        text-transform: uppercase;
+    }
+    td{
+        padding: 5px;
+    }
+    tr:nth-child(even){
+        background: #A28F9D;
+        color: aliceblue;
+    }
+}

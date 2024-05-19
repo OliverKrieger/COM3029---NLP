@@ -18,5 +18,7 @@ run `python -m flask --app main run` in the app folder
 - make sure Docker installed
 - make sure WSL installed
 
+Within the `app` folder
+
 build `docker build -t nerapp .`
 run server `docker run --rm -it -p 5000:5000 nerapp`

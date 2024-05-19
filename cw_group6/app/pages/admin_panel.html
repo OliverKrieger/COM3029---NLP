@@ -1,0 +1,19 @@
+<div class="admin-panel">
+    <h1>Logs</h1>
+    <table class="table-style">
+        <tr>
+            <th>Time</th>
+            <th>Model</th>
+            <th>Input</th>
+            <th>Prediction</th>
+        </tr>
+        {% for (input, predictions, model_type, time) in data %}
+        <tr>
+            <td>{{time}}</td>
+            <td>{{model_type}}</td>
+            <td>{{predictions}}</td>
+            <td>{{input}}</td>
+        </tr>
+        {% endfor %}            
+    </table>
+</div>
