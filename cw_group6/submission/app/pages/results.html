@@ -1,0 +1,5 @@
+<div id="results">
+    {% for (token, label) in tokens %}
+        <span class="label-tag {{label}}">{{token}} <span class="tag-{{label}}">{{label}}</span></span>
+    {% endfor %}
+</div>

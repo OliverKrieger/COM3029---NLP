@@ -1,0 +1,28 @@
+<div id="admin-content-panel" class="performance-results">
+    {% for (img_name, path, number_of_requests, time_taken, model_type, input) in performance_data %}
+        <div class="performance-metric">
+            <h3>{{img_name}}</h3>
+            <div class="image-container">
+                <img src="{{path}}" />
+            </div>
+            <table class="table-style">
+                <tr>
+                    <td>Used Input:</td>
+                    <td>{{input}}</td>
+                </tr>
+                <tr>
+                    <td>Number of Requests made:</td>
+                    <td>{{number_of_requests}}</td>
+                </tr>
+                <tr>
+                    <td>Time Taken:</td>
+                    <td>{{time_taken}}</td>
+                </tr>
+                <tr>
+                    <td>Model Used:</td>
+                    <td>{{model_type}}</td>
+                </tr>
+            </table>
+        </div>        
+    {% endfor %}            
+</div>

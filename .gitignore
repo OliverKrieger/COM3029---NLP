@@ -33,4 +33,6 @@ cw_group6/app/static/figs/performance
 cw_group6/app/models/training_notebooks/BERT/checkpoints/*
 cw_group6/app/models/training_notebooks/Spacy/output/*
 cw_group6/video
+cw_group6/diagrams/*.psd
+cw_group6/submission/*.mp4
 *__pycache__

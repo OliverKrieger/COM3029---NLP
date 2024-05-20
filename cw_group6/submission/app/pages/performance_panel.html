@@ -1,0 +1,26 @@
+<div id="admin-content-panel" class="performance-panel">
+    <div class="center-container">
+        <h1>Performance</h1>
+        <form hx-post="/performance-results" hx-target="#admin-content-panel" hx-swap="outerHTML" hx-indicator="#spinner">
+            <select name="ai_models" id="ai_models" class="classic">
+                <option value="spaCy">spaCy</option>
+                <option value="DistilBERT">DistilBERT</option>
+            </select>
+            <div class="form-field form-input">
+                <input type="text" name="text_input" value="NER is an abbreviation" placeholder="Enter test input..." required/>
+            </div>
+            <div class="form-field form-input">
+                <input type="number" name="time_for_requests" value="1" required/>
+            </div>
+            <div class="form-field form-input">
+                <input type="number" name="number_of_requests" value="200" required/>
+            </div>
+            <div class="form-field">
+                <button class="btn">Test Performance</button>
+            </div>
+        </form>
+        <div id="spinner" class="htmx-indicator">
+            <div class="lds-dual-ring"></div>
+        </div>
+    </div>          
+</div>
